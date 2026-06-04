@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  print-service:
+    build: .
+    container_name: jianmei-print-service
+    restart: unless-stopped
+    ports:
+      - "8000:8000"          # 前端呼叫 https://dannykuo123.synology.me/api/print-label
+    environment:
+      - PRINTER_USB_DEV=/dev/usb/lp0       # Linux 標準 USB 列印裝置路徑
+    devices:
+      - "/dev/usb/lp0:/dev/usb/lp0:rw"    # 掛入標準 USB 列印裝置
+    privileged: true
+    user: root
