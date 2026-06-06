@@ -19,6 +19,16 @@ function expectExcludes(needle, label) {
 }
 
 expectIncludes('id="orgPeople"', 'the orderer detail panel')
+expectIncludes('const inTeamDetail = computed', 'a route-driven organizer detail mode')
+expectIncludes('id="orgLandingView"', 'the first-level organizer landing view')
+expectIncludes('id="orgCurrentTeams"', 'the current groups section on the landing view')
+expectIncludes('id="orgPastTeams"', 'the past groups section on the landing view')
+expectIncludes('v-if="inTeamDetail && activeTeam"', 'detail-only organizer management content')
+expectIncludes('v-if="!inTeamDetail"', 'landing-only organizer list content')
+expectIncludes('@click="enterTeam(team.id)"', 'team cards entering the detail route')
+expectIncludes('@click="backToTeamList"', 'the detail route back action')
+expectIncludes('@click="openEditTeam"', 'the group info edit action')
+expectIncludes('function saveTeam()', 'a shared create/edit group save handler')
 expectIncludes('class="primary-btn quick-add-trigger"', 'the add-orderer action in the detail header')
 expectIncludes('id="quickAddModal"', 'the quick add modal')
 expectIncludes('class="org-settings-grid"', 'the merged group settings layout')

@@ -3867,6 +3867,11 @@ button:disabled {
   padding: 0;
 }
 
+.organizer-landing {
+  display: grid;
+  gap: 16px;
+}
+
 .ord-shop {
   color: #f7ebd7;
   font-family: 'Noto Serif TC', serif;

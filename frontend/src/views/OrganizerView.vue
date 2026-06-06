@@ -36,6 +36,8 @@ const submitOpen = ref(false)
 const newTeamOpen = ref(false)
 const historyOpen = ref(false)
 const quickAddOpen = ref(false)
+const teamFormMode = ref('create')
+const editingTeamId = ref('')
 const shareText = ref('開團囉！！請點網址進去點餐')
 const deliverAt = ref(defaultDeliverAt())
 const quickAddMode = ref('menu')
@@ -113,6 +115,9 @@ const visibleOrganizerHistory = computed(() => {
   return limit > 0 ? organizerHistory.slice(0, limit) : organizerHistory
 })
 const latestOrganizerHistory = computed(() => visibleOrganizerHistory.value[0] || null)
+const inTeamDetail = computed(() => Boolean(route.params.teamId && teams.findTeam(route.params.teamId)))
+const teamFormTitle = computed(() => teamFormMode.value === 'edit' ? '編輯開團資訊' : '開新團')
+const teamFormSubmitText = computed(() => teamFormMode.value === 'edit' ? '儲存變更' : '建立團購')
 const deadlineCountdown = computed(() => {
   const team = activeTeam.value
   if (!team?.deadline) return '未設定'
@@ -147,10 +152,6 @@ watch(() => route.params.teamId, (teamId) => {
   if (teamId && teams.findTeam(teamId)) activeTeamId.value = teamId
 })
 
-watch(activeTeamId, (teamId) => {
-  if (teamId && route.params.teamId !== teamId) router.replace(`/organizer/${teamId}`)
-})
-
 watch(activeTeamOrders, (list) => {
   if (!list.some((order) => order.id === activeOrderId.value)) {
     activeOrderId.value = list[0]?.id || ''
@@ -173,9 +174,16 @@ function defaultDeliverAt() {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
 }
 
-function selectTeam(teamId) {
+function enterTeam(teamId) {
+  if (!teams.findTeam(teamId)) return
   activeTeamId.value = teamId
   message.value = ''
+  router.push(`/organizer/${teamId}`)
+}
+
+function backToTeamList() {
+  message.value = ''
+  router.push('/organizer')
 }
 
 function teamState(team) {
@@ -185,12 +193,12 @@ function teamState(team) {
 }
 
 function teamNextAction(team) {
-  if (!team.open) return '下一步：開啟團購後再分享連結'
-  if (team.paused) return '目前暫停收單，可先恢復收單'
+  if (!team.open) return '下一步：開啟團購後進入管理'
+  if (team.paused) return '目前暫停收單，可恢復後進入管理'
   if (team.submitStatus === 'pending') return '已送單，等待店家接單'
-  if (team.submitStatus === 'accepted') return '店家已接單，可追加訂單'
+  if (team.submitStatus === 'accepted') return '店家已接單，可進入管理追加'
   if (team.submitStatus === 'rejected') return '店家拒單，可重新編輯後送出'
-  return '下一步：使用下方分享區發給訂購人'
+  return '下一步：進入管理後分享給訂購人'
 }
 
 function teamOrders(team) {
@@ -281,6 +289,8 @@ function openNewTeam() {
     message.value = `已達開團上限（${maxOpenTeams.value} 團），請先關閉其他團`
     return
   }
+  teamFormMode.value = 'create'
+  editingTeamId.value = ''
   Object.assign(newTeam, {
     name: '',
     company: '',
@@ -291,9 +301,36 @@ function openNewTeam() {
   newTeamOpen.value = true
 }
 
-function createTeam() {
+function openEditTeam() {
+  const team = activeTeam.value
+  if (!team) return
+  teamFormMode.value = 'edit'
+  editingTeamId.value = team.id
+  Object.assign(newTeam, {
+    name: team.name,
+    company: team.company,
+    dueDate: team.dueDate,
+    deadline: team.deadline,
+    organizer: team.organizer
+  })
+  newTeamOpen.value = true
+}
+
+function saveTeam() {
   if (!newTeam.name.trim()) {
     message.value = '請輸入團購名稱'
+    return
+  }
+  if (teamFormMode.value === 'edit') {
+    teams.updateTeam(editingTeamId.value, {
+      name: newTeam.name,
+      company: newTeam.company,
+      dueDate: newTeam.dueDate,
+      deadline: newTeam.deadline,
+      organizer: newTeam.organizer
+    })
+    newTeamOpen.value = false
+    message.value = `已更新「${newTeam.name}」`
     return
   }
   const id = teams.addTeam({
@@ -305,6 +342,7 @@ function createTeam() {
   })
   newTeamOpen.value = false
   activeTeamId.value = id
+  router.push(`/organizer/${id}`)
   message.value = `已開團「${newTeam.name}」`
 }
 
@@ -411,26 +449,20 @@ function printA4() {
 <template>
   <main id="organizer" class="page organizer-page screen active org-wrap">
     <nav class="topbar org-head">
-      <button type="button" @click="router.push('/')">返回入口</button>
-      <strong id="orgTitle" class="ord-shop">團購主</strong>
+      <button v-if="inTeamDetail" type="button" @click="backToTeamList">返回團購列表</button>
+      <button v-else type="button" @click="router.push('/')">返回入口</button>
+      <strong id="orgTitle" class="ord-shop">{{ inTeamDetail ? activeTeam?.name : '團購主' }}</strong>
     </nav>
 
-    <section id="orgStatsRow" class="grid-3 org-stats">
-      <div class="stat-card org-stat"><span class="os-k">訂購人數</span><strong class="os-v">{{ memberCount }}</strong></div>
-      <div class="stat-card org-stat"><span class="os-k">品項總數</span><strong class="os-v">{{ itemCount }}</strong></div>
-      <div class="stat-card org-stat"><span class="os-k">總額</span><strong class="os-v">${{ teamTotal.toLocaleString() }}</strong></div>
-      <div class="stat-card org-stat"><span class="os-k">{{ deadlineCountdownLabel }}</span><strong class="os-v" :class="deadlineCountdownClass">{{ deadlineCountdown }}</strong></div>
-    </section>
-
-    <section id="orgListView" class="panel org-panel">
+    <div v-if="!inTeamDetail" id="orgLandingView" class="organizer-landing">
+    <section id="orgCurrentTeams" class="panel org-panel">
       <div class="panel-head">
         <div>
           <h2>目前團購</h2>
-          <span id="teamQuotaHint" class="team-quota-hint">{{ openTeamCount }} 個開團中 · 上限 {{ maxOpenTeams }} 團 · {{ activeTeam?.name || '尚無團購' }}</span>
+          <span id="teamQuotaHint" class="team-quota-hint">{{ openTeamCount }} 個開團中 · 上限 {{ maxOpenTeams }} 團</span>
         </div>
         <div class="action-row org-actions">
-          <button type="button" class="ghost-btn org-act team-new-btn" @click="openNewTeam">開新團</button>
-          <button type="button" class="primary-btn org-act" @click="printA4">列印 A4 訂單表</button>
+          <button type="button" class="primary-btn org-act team-new-btn" @click="openNewTeam">開新團</button>
         </div>
       </div>
 
@@ -439,8 +471,8 @@ function printA4() {
           v-for="team in teams.teams"
           :key="team.id"
           class="tcard"
-          :class="[{ active: team.id === activeTeam?.id }, team.open && !team.paused ? 'on' : 'off']"
-          @click="selectTeam(team.id)"
+          :class="team.open && !team.paused ? 'on' : 'off'"
+          @click="enterTeam(team.id)"
         >
           <div class="tcard-top">
             <div class="tcard-nm">{{ team.name }}</div>
@@ -460,26 +492,67 @@ function printA4() {
             <div class="tcard-ops team-actbar">
               <button type="button" class="tcard-op team-toggle-mini" @click.stop="teams.togglePaused(team.id)">{{ team.paused ? '恢復' : '暫停' }}</button>
               <button type="button" class="tcard-op tg team-toggle-mini" @click.stop="teams.toggleOpen(team.id)">{{ team.open ? '關團' : '開團' }}</button>
+              <button type="button" class="tcard-op team-enter-mini" @click.stop="enterTeam(team.id)">進入管理</button>
             </div>
-            <div v-if="team.id === activeTeam?.id" class="tcard-next">{{ teamNextAction(team) }}</div>
+            <div class="tcard-next">{{ teamNextAction(team) }}</div>
             <div v-if="team.submitStatus" class="tcard-submit" :class="team.submitStatus" @click.stop>
               <span>{{ teams.submitStatusLabel(team.submitStatus) }}</span>
               <button v-if="team.submitStatus === 'pending'" type="button" class="ts-act recall" @click="recallTeamFromList(team)">收回訂單</button>
-              <button v-if="team.submitStatus === 'accepted'" type="button" class="ts-act add" @click="selectTeam(team.id)">追加訂單</button>
-              <button v-if="team.submitStatus === 'rejected'" type="button" class="ts-act add" @click="selectTeam(team.id)">重新編輯</button>
+              <button v-if="team.submitStatus === 'accepted'" type="button" class="ts-act add" @click="enterTeam(team.id)">追加訂單</button>
+              <button v-if="team.submitStatus === 'rejected'" type="button" class="ts-act add" @click="enterTeam(team.id)">重新編輯</button>
             </div>
           </div>
         </article>
       </div>
     </section>
 
-    <section v-if="activeTeam" id="orgDetailView" class="panel org-panel org-settings-panel">
+    <section v-if="uiSettings.team.keepOrganizerHistory" id="orgPastTeams" class="hist-sec organizer-history" :class="{ compact: !historyOpen }">
+      <div class="hist-h organizer-history-head">
+        <span class="history-title">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
+          過去的團購
+        </span>
+        <button v-if="visibleOrganizerHistory.length" type="button" class="ghost-btn history-toggle" @click="historyOpen = !historyOpen">
+          {{ historyOpen ? '收合' : `查看 ${visibleOrganizerHistory.length} 筆` }}
+        </button>
+      </div>
+      <div v-if="!visibleOrganizerHistory.length" class="hist-empty">還沒有團購紀錄</div>
+      <template v-else-if="historyOpen">
+        <article v-for="record in visibleOrganizerHistory" :key="record.date" class="hist-item">
+          <div class="hist-top">
+            <span class="hist-date">
+              {{ record.date }}
+              <span class="hist-badge done">{{ record.status }}</span>
+            </span>
+            <span class="hist-amt">${{ record.total.toLocaleString() }}</span>
+          </div>
+          <div class="hist-sub">共 {{ record.people }} 人訂購</div>
+        </article>
+      </template>
+      <div v-else-if="latestOrganizerHistory" class="hist-collapsed">
+        <span>最近 {{ latestOrganizerHistory.date }} · {{ latestOrganizerHistory.people }} 人訂購</span>
+        <strong>${{ latestOrganizerHistory.total.toLocaleString() }}</strong>
+      </div>
+    </section>
+    </div>
+
+    <template v-if="inTeamDetail && activeTeam">
+    <section id="orgStatsRow" class="grid-3 org-stats">
+      <div class="stat-card org-stat"><span class="os-k">訂購人數</span><strong class="os-v">{{ memberCount }}</strong></div>
+      <div class="stat-card org-stat"><span class="os-k">品項總數</span><strong class="os-v">{{ itemCount }}</strong></div>
+      <div class="stat-card org-stat"><span class="os-k">總額</span><strong class="os-v">${{ teamTotal.toLocaleString() }}</strong></div>
+      <div class="stat-card org-stat"><span class="os-k">{{ deadlineCountdownLabel }}</span><strong class="os-v" :class="deadlineCountdownClass">{{ deadlineCountdown }}</strong></div>
+    </section>
+
+    <section id="orgDetailView" class="panel org-panel org-settings-panel">
       <div class="panel-head">
         <div>
           <h2>團購設定</h2>
           <span>{{ activeTeam.name }} · #{{ activeTeam.id }} · {{ teamState(activeTeam) }} · 截止 {{ teamDeadlineText(activeTeam) }}</span>
         </div>
         <div class="action-row org-settings-actions">
+          <button type="button" class="ghost-btn org-edit-team" @click="openEditTeam">編輯開團資訊</button>
+          <button type="button" class="ghost-btn org-print-a4" @click="printA4">列印 A4 訂單表</button>
           <button v-if="!activeTeam.submitStatus" type="button" class="primary-btn org-submit-primary" @click="openSubmitModal">整批送單給店家</button>
           <span class="pill">{{ teams.submitStatusLabel(activeTeam.submitStatus) }}</span>
         </div>
@@ -572,35 +645,7 @@ function printA4() {
         <p v-if="!activeTeamOrders.length" class="set-note">這個團購還沒有訂單。</p>
       </div>
     </section>
-
-    <section v-if="uiSettings.team.keepOrganizerHistory" class="hist-sec organizer-history" :class="{ compact: !historyOpen }">
-      <div class="hist-h organizer-history-head">
-        <span class="history-title">
-          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
-          過去的團購
-        </span>
-        <button v-if="visibleOrganizerHistory.length" type="button" class="ghost-btn history-toggle" @click="historyOpen = !historyOpen">
-          {{ historyOpen ? '收合' : `查看 ${visibleOrganizerHistory.length} 筆` }}
-        </button>
-      </div>
-      <div v-if="!visibleOrganizerHistory.length" class="hist-empty">還沒有團購紀錄</div>
-      <template v-else-if="historyOpen">
-        <article v-for="record in visibleOrganizerHistory" :key="record.date" class="hist-item">
-          <div class="hist-top">
-            <span class="hist-date">
-              {{ record.date }}
-              <span class="hist-badge done">{{ record.status }}</span>
-            </span>
-            <span class="hist-amt">${{ record.total.toLocaleString() }}</span>
-          </div>
-          <div class="hist-sub">共 {{ record.people }} 人訂購</div>
-        </article>
-      </template>
-      <div v-else-if="latestOrganizerHistory" class="hist-collapsed">
-        <span>最近 {{ latestOrganizerHistory.date }} · {{ latestOrganizerHistory.people }} 人訂購</span>
-        <strong>${{ latestOrganizerHistory.total.toLocaleString() }}</strong>
-      </div>
-    </section>
+    </template>
 
     <p v-if="message" class="status-line">{{ message }}</p>
 
@@ -709,7 +754,7 @@ function printA4() {
     <div v-if="newTeamOpen" id="newTeamModal" class="modal-backdrop date-modal show" @click.self="newTeamOpen = false">
       <section class="edit-modal date-box">
         <header class="date-box-h">
-          <h2>開新團</h2>
+          <h2>{{ teamFormTitle }}</h2>
           <button type="button" @click="newTeamOpen = false">×</button>
         </header>
         <div class="form-grid">
@@ -721,7 +766,7 @@ function printA4() {
         </div>
         <footer class="date-box-ft">
           <button type="button" class="ghost-btn date-cancel" @click="newTeamOpen = false">取消</button>
-          <button type="button" class="primary-btn date-apply" @click="createTeam">建立團購</button>
+          <button type="button" class="primary-btn date-apply" @click="saveTeam">{{ teamFormSubmitText }}</button>
         </footer>
       </section>
     </div>
