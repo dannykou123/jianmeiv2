@@ -408,6 +408,14 @@ function reorder(record) {
       </div>
     </section>
 
+    <div v-if="cartItems.length && !checkoutOpen && !successOpen" class="mobile-cart-bar" role="status" aria-live="polite">
+      <div>
+        <small>已選 {{ cartCount }} 份</small>
+        <strong>${{ total.toLocaleString() }}</strong>
+      </div>
+      <button type="button" @click="openCheckout">查看購物車</button>
+    </div>
+
     <section v-if="uiSettings.team.keepOrdererHistory" class="hist-sec">
       <div class="hist-h">
         <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>

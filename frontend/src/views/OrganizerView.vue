@@ -34,8 +34,10 @@ const activeOrderId = ref(orders.orders[0]?.id || '')
 const message = ref('')
 const submitOpen = ref(false)
 const newTeamOpen = ref(false)
+const historyOpen = ref(false)
 const shareText = ref('開團囉！！請點網址進去點餐')
 const deliverAt = ref(defaultDeliverAt())
+const quickAddMode = ref('menu')
 const quickMenuType = ref('normal')
 const quickCart = reactive({})
 const nowMs = ref(Date.now())
@@ -118,6 +120,7 @@ const visibleOrganizerHistory = computed(() => {
   const limit = Math.max(0, Number(uiSettings.team.organizerHistoryLimit) || 0)
   return limit > 0 ? organizerHistory.slice(0, limit) : organizerHistory
 })
+const latestOrganizerHistory = computed(() => visibleOrganizerHistory.value[0] || null)
 const deadlineCountdown = computed(() => {
   const team = activeTeam.value
   if (!team?.deadline) return '未設定'
@@ -189,6 +192,15 @@ function teamState(team) {
   return '開團中'
 }
 
+function teamNextAction(team) {
+  if (!team.open) return '下一步：開啟團購後再分享連結'
+  if (team.paused) return '目前暫停收單，可先恢復收單'
+  if (team.submitStatus === 'pending') return '已送單，等待店家接單'
+  if (team.submitStatus === 'accepted') return '店家已接單，可追加訂單'
+  if (team.submitStatus === 'rejected') return '店家拒單，可重新編輯後送出'
+  return '下一步：複製連結或 LINE 分享給訂購人'
+}
+
 function teamOrders(team) {
   if (!team) return []
   return orders.orders.filter((order) => {
@@ -255,7 +267,7 @@ function clearQuickCart() {
 }
 
 function addQuickMember() {
-  const items = quickCartItems.value.length
+  const items = quickAddMode.value === 'menu'
     ? quickCartItems.value.map((item) => [item.name, item.qty, item.price])
     : parseItems(quickMember.itemsText)
   if (!quickMember.name.trim() || !items.length) {
@@ -470,15 +482,16 @@ function printA4() {
             <div class="tcard-ops team-actbar">
               <button type="button" class="tcard-op team-copy" @click.stop="copyTeamLink(team)">
                 <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
-                複製團購連結
+                複製連結
               </button>
               <button type="button" class="tcard-op line team-line" @click.stop="openTeamLineShare(team)">
                 <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.5 2 2 5.7 2 10.2c0 4 3.6 7.4 8.5 8 .3.1.8.2.9.5.1.3.1.6 0 .9l-.1.9c0 .3-.2 1 .9.6 1.1-.5 6-3.5 8.2-6h0c1.5-1.6 2.2-3.3 2.2-5.4C22.6 5.7 18 2 12 2z" /></svg>
                 LINE 分享
               </button>
-              <button type="button" class="tcard-op team-toggle-mini" @click.stop="teams.togglePaused(team.id)">{{ team.paused ? '恢復收單' : '暫停收單' }}</button>
-              <button type="button" class="tcard-op tg team-toggle-mini" @click.stop="teams.toggleOpen(team.id)">{{ team.open ? '關閉團購' : '開啟團購' }}</button>
+              <button type="button" class="tcard-op team-toggle-mini" @click.stop="teams.togglePaused(team.id)">{{ team.paused ? '恢復' : '暫停' }}</button>
+              <button type="button" class="tcard-op tg team-toggle-mini" @click.stop="teams.toggleOpen(team.id)">{{ team.open ? '關團' : '開團' }}</button>
             </div>
+            <div v-if="team.id === activeTeam?.id" class="tcard-next">{{ teamNextAction(team) }}</div>
             <div v-if="team.submitStatus" class="tcard-submit" :class="team.submitStatus" @click.stop>
               <span>{{ teams.submitStatusLabel(team.submitStatus) }}</span>
               <button v-if="team.submitStatus === 'pending'" type="button" class="ts-act recall" @click="recallTeamFromList(team)">收回訂單</button>
@@ -490,13 +503,18 @@ function printA4() {
       </div>
     </section>
 
-    <section v-if="uiSettings.team.keepOrganizerHistory" class="hist-sec organizer-history">
-      <div class="hist-h">
-        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
-        過去的團購
+    <section v-if="uiSettings.team.keepOrganizerHistory" class="hist-sec organizer-history" :class="{ compact: !historyOpen }">
+      <div class="hist-h organizer-history-head">
+        <span class="history-title">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
+          過去的團購
+        </span>
+        <button v-if="visibleOrganizerHistory.length" type="button" class="ghost-btn history-toggle" @click="historyOpen = !historyOpen">
+          {{ historyOpen ? '收合' : `查看 ${visibleOrganizerHistory.length} 筆` }}
+        </button>
       </div>
       <div v-if="!visibleOrganizerHistory.length" class="hist-empty">還沒有團購紀錄</div>
-      <template v-else>
+      <template v-else-if="historyOpen">
         <article v-for="record in visibleOrganizerHistory" :key="record.date" class="hist-item">
           <div class="hist-top">
             <span class="hist-date">
@@ -508,6 +526,10 @@ function printA4() {
           <div class="hist-sub">共 {{ record.people }} 人訂購</div>
         </article>
       </template>
+      <div v-else-if="latestOrganizerHistory" class="hist-collapsed">
+        <span>最近 {{ latestOrganizerHistory.date }} · {{ latestOrganizerHistory.people }} 人訂購</span>
+        <strong>${{ latestOrganizerHistory.total.toLocaleString() }}</strong>
+      </div>
     </section>
 
     <section v-if="activeTeam" id="orgDetailView" class="panel org-panel">
@@ -574,17 +596,24 @@ function printA4() {
           <option v-for="order in activeTeamOrders" :key="order.id" :value="order.id">{{ order.company }} · {{ order.date }}</option>
         </select>
       </div>
+      <div class="seg-row quick-add-mode" role="tablist" aria-label="快速追加模式">
+        <button type="button" :class="{ on: quickAddMode === 'menu' }" @click="quickAddMode = 'menu'">簡易選品</button>
+        <button type="button" :class="{ on: quickAddMode === 'paste' }" @click="quickAddMode = 'paste'">貼上文字</button>
+      </div>
+      <p class="set-note quick-add-hint">
+        {{ quickAddMode === 'menu' ? '先填訂購人，再用商品卡片加數量。' : '適合從 LINE 或試算表貼入「品名,數量,單價」。' }}
+      </p>
       <div class="form-grid">
         <label>姓名<input v-model="quickMember.name" /></label>
         <label>部門<input v-model="quickMember.department" /></label>
         <label>電話<input v-model="quickMember.phone" /></label>
         <label>備註<input v-model="quickMember.note" /></label>
-        <label class="span-2">
+        <label v-if="quickAddMode === 'paste'" class="span-2">
           備用文字品項
           <textarea v-model="quickMember.itemsText" class="parts-textarea" placeholder="品名,數量,單價;品名,數量,單價"></textarea>
         </label>
       </div>
-      <div class="proxy-order-menu">
+      <div v-if="quickAddMode === 'menu'" class="proxy-order-menu">
         <div class="panel-subhead">
           <h3>代選品項</h3>
           <span>目前 ${{ quickCartTotal.toLocaleString() }}</span>
@@ -630,7 +659,7 @@ function printA4() {
       </div>
       <div class="action-row org-actions">
         <button type="button" class="primary-btn org-act" @click="addQuickMember">加入此訂購人</button>
-        <small class="set-note">若已用上方按鈕選品，會優先使用選品內容；文字格式可作為臨時貼單備用。</small>
+        <small class="set-note">{{ quickAddMode === 'menu' ? '請至少選一個品項再加入。' : '文字格式可用逗號或分號分隔多筆品項。' }}</small>
       </div>
     </section>
 
