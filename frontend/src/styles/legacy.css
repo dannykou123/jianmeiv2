@@ -1164,6 +1164,23 @@ button {
   margin-top: 12px;
 }
 
+.proxy-panel.collapsed {
+  gap: 0;
+}
+
+.proxy-panel.collapsed .panel-head {
+  margin-bottom: 0;
+}
+
+.quick-add-trigger {
+  min-width: 132px;
+  white-space: nowrap;
+}
+
+.quick-add-order {
+  margin-top: 12px;
+}
+
 .quick-add-mode button {
   flex: 1 1 140px;
 }
