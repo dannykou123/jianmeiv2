@@ -4024,29 +4024,6 @@ button:disabled {
   grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
 }
 
-.tcard-next {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border: 1px solid rgba(239, 221, 178, .16);
-  border-radius: 8px;
-  background: rgba(239, 221, 178, .08);
-  color: #f4dfb4;
-  font-size: 13px;
-  font-weight: 900;
-  line-height: 1.45;
-}
-
-.tcard-next::before {
-  content: '';
-  flex: 0 0 auto;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #f2d486;
-}
-
 .tcard-op {
   flex: 1 1 120px;
   min-height: 38px;
@@ -4162,6 +4139,11 @@ button:disabled {
   gap: 14px;
 }
 
+.org-settings-clean {
+  display: grid;
+  gap: 12px;
+}
+
 .org-settings-section {
   min-width: 0;
   display: grid;
@@ -4169,12 +4151,17 @@ button:disabled {
   gap: 12px;
 }
 
-.org-settings-subhead {
-  margin-bottom: 0;
+.org-setting-block {
+  padding: 12px;
+  border: 1px solid rgba(228, 222, 210, .12);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, .12);
 }
 
-.org-settings-subhead h3 {
-  margin: 0;
+.org-setting-label {
+  color: #cfc4b2;
+  font-size: 13px;
+  font-weight: 900;
 }
 
 .org-settings-actions {
@@ -4186,6 +4173,10 @@ button:disabled {
   min-width: 160px;
   min-height: 42px;
   padding-inline: 18px;
+}
+
+.org-submit-recall {
+  min-height: 42px;
 }
 
 .share-box {
@@ -4228,119 +4219,6 @@ button:disabled {
   color: #a6e6b8;
 }
 
-.team-note-l {
-  margin-top: 10px;
-}
-
-.submit-state {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  margin-top: 12px;
-  padding: 14px;
-  border: 1px solid rgba(228, 222, 210, .14);
-  border-radius: 8px;
-  background: rgba(0, 0, 0, .14);
-}
-
-.submit-state > div:first-child {
-  display: grid;
-  gap: 4px;
-}
-
-.submit-state small {
-  color: #c6bcaa;
-}
-
-.submit-state.pending {
-  border-color: rgba(218, 170, 72, .45);
-}
-
-.submit-state.accepted {
-  border-color: rgba(100, 176, 128, .45);
-}
-
-.submit-state.rejected {
-  border-color: rgba(219, 111, 111, .45);
-}
-
-.org-submit-bar {
-  margin-top: 14px;
-}
-
-.osb-main {
-  min-width: 0;
-}
-
-.osb-h {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.osb-badge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  width: fit-content;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: rgba(184, 159, 117, .25);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.osb-badge.pending {
-  background: #b8842f;
-}
-
-.osb-badge.accepted {
-  background: #4f8b62;
-}
-
-.osb-badge.rejected {
-  background: #a85050;
-}
-
-.osb-when,
-.osb-desc {
-  color: #c6bcaa;
-  line-height: 1.5;
-}
-
-.osb-actions {
-  flex-wrap: wrap;
-}
-
-.osb-btn {
-  min-height: 38px;
-  border: 1px solid rgba(228, 222, 210, .16);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, .06);
-  color: #cfc4b2;
-  padding: 0 14px;
-  font-weight: 800;
-}
-
-.osb-btn.recall {
-  border-color: rgba(218, 170, 72, .7);
-  color: #f4dfb4;
-}
-
-.osb-btn.add,
-.osb-btn.reedit {
-  border-color: rgba(184, 159, 117, .8);
-  background: rgba(184, 159, 117, .22);
-  color: #f4dfb4;
-}
-
-.osb-btn.demo {
-  font-size: 13px;
-}
-
 .team-order-panel {
   border-color: rgba(143, 130, 111, .34);
 }
@@ -4374,6 +4252,14 @@ button:disabled {
 .pay-switch {
   width: fit-content;
   margin-top: 12px;
+}
+
+.pay-setup.org-setting-block .pay-switch {
+  margin-top: 0;
+}
+
+.compact-announcement textarea {
+  min-height: 96px;
 }
 
 .status-line.warning {
@@ -7791,11 +7677,6 @@ button:disabled {
   }
 
   .proxy-cart-summary {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .submit-state {
     align-items: stretch;
     flex-direction: column;
   }

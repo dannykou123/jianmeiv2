@@ -86,13 +86,6 @@ const shareLink = computed(() => {
   return `${window.location.origin}${window.location.pathname}${href}`
 })
 
-const submitDescription = computed(() => {
-  const team = activeTeam.value
-  if (!team?.submitStatus) return '整批送單前仍可自由調整訂購人與品項。'
-  if (team.submitStatus === 'pending') return '已送單給店家，等待店家接單；尚未接單前可以收回。'
-  if (team.submitStatus === 'accepted') return '店家已接單，無法收回；出貨前仍可追加訂購人。'
-  return '店家已拒單，可以重新編輯後再次送出。'
-})
 const canAddMember = computed(() => {
   const team = activeTeam.value
   if (!team || !team.open || team.paused) return false
@@ -190,15 +183,6 @@ function teamState(team) {
   if (!team.open) return '已關團'
   if (team.paused) return '暫停收單'
   return '開團中'
-}
-
-function teamNextAction(team) {
-  if (!team.open) return '下一步：開啟團購後進入管理'
-  if (team.paused) return '目前暫停收單，可恢復後進入管理'
-  if (team.submitStatus === 'pending') return '已送單，等待店家接單'
-  if (team.submitStatus === 'accepted') return '店家已接單，可進入管理追加'
-  if (team.submitStatus === 'rejected') return '店家拒單，可重新編輯後送出'
-  return '下一步：進入管理後分享給訂購人'
 }
 
 function teamOrders(team) {
@@ -409,11 +393,6 @@ function reeditResubmit() {
   message.value = '已可重新編輯，調整訂單後再送出'
 }
 
-function demoReview(decision) {
-  teams.reviewSubmission(activeTeam.value.id, decision)
-  message.value = decision === 'accept' ? '（模擬）店家已接單' : '（模擬）店家已拒單'
-}
-
 function openQuickAddModal() {
   if (!canAddMember.value) {
     message.value = '目前狀態無法追加訂購人'
@@ -494,7 +473,6 @@ function printA4() {
               <button type="button" class="tcard-op tg team-toggle-mini" @click.stop="teams.toggleOpen(team.id)">{{ team.open ? '關團' : '開團' }}</button>
               <button type="button" class="tcard-op team-enter-mini" @click.stop="enterTeam(team.id)">進入管理</button>
             </div>
-            <div class="tcard-next">{{ teamNextAction(team) }}</div>
             <div v-if="team.submitStatus" class="tcard-submit" :class="team.submitStatus" @click.stop>
               <span>{{ teams.submitStatusLabel(team.submitStatus) }}</span>
               <button v-if="team.submitStatus === 'pending'" type="button" class="ts-act recall" @click="recallTeamFromList(team)">收回訂單</button>
@@ -548,53 +526,31 @@ function printA4() {
       <div class="panel-head">
         <div>
           <h2>團購設定</h2>
-          <span>{{ activeTeam.name }} · #{{ activeTeam.id }} · {{ teamState(activeTeam) }} · 截止 {{ teamDeadlineText(activeTeam) }}</span>
+          <span>{{ activeTeam.name }} · 截止 {{ teamDeadlineText(activeTeam) }}</span>
         </div>
         <div class="action-row org-settings-actions">
+          <span class="pill">{{ teams.submitStatusLabel(activeTeam.submitStatus) }}</span>
+          <button v-if="!activeTeam.submitStatus" type="button" class="primary-btn org-submit-primary" @click="openSubmitModal">整批送單給店家</button>
+          <button v-else-if="activeTeam.submitStatus === 'pending'" type="button" class="ghost-btn org-submit-recall" @click="recallOrder">收回訂單</button>
+          <button v-else-if="activeTeam.submitStatus === 'rejected'" type="button" class="primary-btn org-submit-primary" @click="reeditResubmit">重新編輯並送出</button>
           <button type="button" class="ghost-btn org-edit-team" @click="openEditTeam">編輯開團資訊</button>
           <button type="button" class="ghost-btn org-print-a4" @click="printA4">列印 A4 訂單表</button>
-          <button v-if="!activeTeam.submitStatus" type="button" class="primary-btn org-submit-primary" @click="openSubmitModal">整批送單給店家</button>
-          <span class="pill">{{ teams.submitStatusLabel(activeTeam.submitStatus) }}</span>
         </div>
       </div>
 
-      <div class="org-settings-grid">
-        <section class="org-settings-section">
-          <div class="panel-subhead org-settings-subhead">
-            <h3>分享與送單</h3>
-            <span>發給訂購人與送單給店家</span>
-          </div>
+      <div class="org-settings-grid org-settings-clean">
+        <section class="org-settings-section org-setting-block org-share-block">
+          <label class="org-setting-label" for="teamLink">訂購連結</label>
           <div id="teamOpen" class="share-box team-open">
             <input id="teamLink" class="team-id" :value="shareLink" readonly />
             <button type="button" class="team-copy" @click="copyShareLink">複製連結</button>
             <button type="button" class="team-line" @click="openLineShare">LINE 分享</button>
           </div>
-          <textarea v-model="shareText" class="parts-textarea team-note-l" aria-label="LINE 分享文字"></textarea>
-
-          <div id="orgSubmitBar" class="submit-state org-submit-bar" :class="activeTeam.submitStatus || 'draft'">
-            <div class="osb-main">
-              <div class="osb-h">
-                <strong class="osb-badge" :class="activeTeam.submitStatus || 'draft'">{{ teams.submitStatusLabel(activeTeam.submitStatus) }}</strong>
-                <small v-if="activeTeam.deliverAt" class="osb-when">送單時間 {{ activeTeam.deliverAt.replace('T', ' ') }}</small>
-              </div>
-              <small class="osb-desc">{{ submitDescription }}</small>
-            </div>
-            <div class="action-row osb-actions">
-              <button v-if="activeTeam.submitStatus === 'pending'" type="button" class="osb-btn recall" @click="recallOrder">收回訂單</button>
-              <button v-if="activeTeam.submitStatus === 'pending'" type="button" class="osb-btn demo" @click="demoReview('accept')">店家接單</button>
-              <button v-if="activeTeam.submitStatus === 'pending'" type="button" class="osb-btn demo" @click="demoReview('reject')">店家拒單</button>
-              <button v-if="activeTeam.submitStatus === 'rejected'" type="button" class="osb-btn reedit" @click="reeditResubmit">重新編輯並送出</button>
-            </div>
-          </div>
         </section>
 
-        <section class="org-settings-section pay-setup">
-          <div class="panel-subhead org-settings-subhead">
-            <h3>公告與付款</h3>
-            <span>會顯示給訂購人參考</span>
-          </div>
-          <label class="text-block pay-fld">
-            公告內容
+        <section class="org-settings-section pay-setup org-setting-block">
+          <label class="text-block pay-fld compact-announcement">
+            <span class="org-setting-label">公告</span>
             <textarea :value="activeTeam.hostNote" @input="teams.updateTeam(activeTeam.id, { hostNote: $event.target.value })"></textarea>
           </label>
           <div class="form-grid team-pay-grid">

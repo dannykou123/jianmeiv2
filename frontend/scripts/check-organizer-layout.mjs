@@ -31,14 +31,24 @@ expectIncludes('@click="openEditTeam"', 'the group info edit action')
 expectIncludes('function saveTeam()', 'a shared create/edit group save handler')
 expectIncludes('class="primary-btn quick-add-trigger"', 'the add-orderer action in the detail header')
 expectIncludes('id="quickAddModal"', 'the quick add modal')
-expectIncludes('class="org-settings-grid"', 'the merged group settings layout')
+expectIncludes('class="org-settings-grid org-settings-clean"', 'the simplified group settings layout')
 expectIncludes('class="action-row org-settings-actions"', 'the prominent group settings action area')
 expectIncludes('class="primary-btn org-submit-primary"', 'the prominent submit-to-shop action')
 expectExcludes('class="panel org-panel proxy-panel"', 'the standalone orderer management panel')
+expectExcludes('class="tcard-next"', 'the next-step prompt on group cards')
+expectExcludes('function teamNextAction', 'the next-step prompt helper')
+expectExcludes('class="parts-textarea team-note-l"', 'the visible LINE share text editor')
+expectExcludes('id="orgSubmitBar"', 'the verbose submit status block')
 expectExcludes('class="primary-btn osb-btn"', 'the primary submit action inside the status bar')
+expectExcludes('demoReview(\'accept\')', 'the shop accept demo action in organizer settings')
+expectExcludes('demoReview(\'reject\')', 'the shop reject demo action in organizer settings')
 
 if (!/\.org-settings-grid\s*\{[^}]*grid-template-columns:\s*1fr;/s.test(styles)) {
   throw new Error('Expected merged organizer settings to use a single-column layout')
+}
+
+if (!/\.org-settings-clean\s*\{[^}]*display:\s*grid;/s.test(styles)) {
+  throw new Error('Expected simplified organizer settings to be a clean grid')
 }
 
 if (/\.team-pay-grid\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\);/s.test(styles)) {
