@@ -22,7 +22,10 @@ expectIncludes('id="orgPeople"', 'the orderer detail panel')
 expectIncludes('class="primary-btn quick-add-trigger"', 'the add-orderer action in the detail header')
 expectIncludes('id="quickAddModal"', 'the quick add modal')
 expectIncludes('class="org-settings-grid"', 'the merged group settings layout')
+expectIncludes('class="action-row org-settings-actions"', 'the prominent group settings action area')
+expectIncludes('class="primary-btn org-submit-primary"', 'the prominent submit-to-shop action')
 expectExcludes('class="panel org-panel proxy-panel"', 'the standalone orderer management panel')
+expectExcludes('class="primary-btn osb-btn"', 'the primary submit action inside the status bar')
 
 if (!/\.org-settings-grid\s*\{[^}]*grid-template-columns:\s*1fr;/s.test(styles)) {
   throw new Error('Expected merged organizer settings to use a single-column layout')

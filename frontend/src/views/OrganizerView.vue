@@ -479,7 +479,10 @@ function printA4() {
           <h2>團購設定</h2>
           <span>{{ activeTeam.name }} · #{{ activeTeam.id }} · {{ teamState(activeTeam) }} · 截止 {{ teamDeadlineText(activeTeam) }}</span>
         </div>
-        <span class="pill">{{ teams.submitStatusLabel(activeTeam.submitStatus) }}</span>
+        <div class="action-row org-settings-actions">
+          <button v-if="!activeTeam.submitStatus" type="button" class="primary-btn org-submit-primary" @click="openSubmitModal">整批送單給店家</button>
+          <span class="pill">{{ teams.submitStatusLabel(activeTeam.submitStatus) }}</span>
+        </div>
       </div>
 
       <div class="org-settings-grid">
@@ -504,7 +507,6 @@ function printA4() {
               <small class="osb-desc">{{ submitDescription }}</small>
             </div>
             <div class="action-row osb-actions">
-              <button v-if="!activeTeam.submitStatus" type="button" class="primary-btn osb-btn" @click="openSubmitModal">整批送單給店家</button>
               <button v-if="activeTeam.submitStatus === 'pending'" type="button" class="osb-btn recall" @click="recallOrder">收回訂單</button>
               <button v-if="activeTeam.submitStatus === 'pending'" type="button" class="osb-btn demo" @click="demoReview('accept')">店家接單</button>
               <button v-if="activeTeam.submitStatus === 'pending'" type="button" class="osb-btn demo" @click="demoReview('reject')">店家拒單</button>

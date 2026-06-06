@@ -4172,6 +4172,17 @@ button:disabled {
   margin: 0;
 }
 
+.org-settings-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.org-submit-primary {
+  min-width: 160px;
+  min-height: 42px;
+  padding-inline: 18px;
+}
+
 .share-box {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
