@@ -91,6 +91,11 @@ const submitDescription = computed(() => {
   if (team.submitStatus === 'accepted') return '店家已接單，無法收回；出貨前仍可追加訂購人。'
   return '店家已拒單，可以重新編輯後再次送出。'
 })
+const canAddMember = computed(() => {
+  const team = activeTeam.value
+  if (!team || !team.open || team.paused) return false
+  return team.submitStatus !== 'pending'
+})
 
 const menuGroups = computed(() => catalog.orderMenuGroups)
 const activeQuickMenuGroup = computed(() => menuGroups.value.find((group) => group.key === quickMenuType.value) || menuGroups.value[0] || { items: [] })
@@ -267,6 +272,7 @@ function addQuickMember() {
     itemsText: '招牌綜合滷味,1,180'
   })
   clearQuickCart()
+  quickAddOpen.value = false
   message.value = '已加入訂購人'
 }
 
@@ -370,9 +376,17 @@ function demoReview(decision) {
   message.value = decision === 'accept' ? '（模擬）店家已接單' : '（模擬）店家已拒單'
 }
 
-function addToOrder() {
+function openQuickAddModal() {
+  if (!canAddMember.value) {
+    message.value = '目前狀態無法追加訂購人'
+    return
+  }
   quickAddOpen.value = true
-  message.value = '已打開「追加訂購人」表單'
+  message.value = ''
+}
+
+function closeQuickAddModal() {
+  quickAddOpen.value = false
 }
 
 function updatePayment(patch) {
@@ -459,146 +473,73 @@ function printA4() {
       </div>
     </section>
 
-    <section v-if="activeTeam" id="orgDetailView" class="panel org-panel">
+    <section v-if="activeTeam" id="orgDetailView" class="panel org-panel org-settings-panel">
       <div class="panel-head">
         <div>
-          <h2>分享與送單</h2>
+          <h2>團購設定</h2>
           <span>{{ activeTeam.name }} · #{{ activeTeam.id }} · {{ teamState(activeTeam) }} · 截止 {{ teamDeadlineText(activeTeam) }}</span>
         </div>
         <span class="pill">{{ teams.submitStatusLabel(activeTeam.submitStatus) }}</span>
       </div>
 
-      <div id="teamOpen" class="share-box team-open">
-        <input id="teamLink" class="team-id" :value="shareLink" readonly />
-        <button type="button" class="team-copy" @click="copyShareLink">複製連結</button>
-        <button type="button" class="team-line" @click="openLineShare">LINE 分享</button>
-      </div>
-      <textarea v-model="shareText" class="parts-textarea team-note-l" aria-label="LINE 分享文字"></textarea>
-
-      <div id="orgSubmitBar" class="submit-state org-submit-bar" :class="activeTeam.submitStatus || 'draft'">
-        <div class="osb-main">
-          <div class="osb-h">
-            <strong class="osb-badge" :class="activeTeam.submitStatus || 'draft'">{{ teams.submitStatusLabel(activeTeam.submitStatus) }}</strong>
-            <small v-if="activeTeam.deliverAt" class="osb-when">送單時間 {{ activeTeam.deliverAt.replace('T', ' ') }}</small>
+      <div class="org-settings-grid">
+        <section class="org-settings-section">
+          <div class="panel-subhead org-settings-subhead">
+            <h3>分享與送單</h3>
+            <span>發給訂購人與送單給店家</span>
           </div>
-          <small class="osb-desc">{{ submitDescription }}</small>
-        </div>
-        <div class="action-row osb-actions">
-          <button v-if="!activeTeam.submitStatus" type="button" class="primary-btn osb-btn" @click="openSubmitModal">整批送單給店家</button>
-          <button v-if="activeTeam.submitStatus === 'pending'" type="button" class="osb-btn recall" @click="recallOrder">收回訂單</button>
-          <button v-if="activeTeam.submitStatus === 'pending'" type="button" class="osb-btn demo" @click="demoReview('accept')">店家接單</button>
-          <button v-if="activeTeam.submitStatus === 'pending'" type="button" class="osb-btn demo" @click="demoReview('reject')">店家拒單</button>
-          <button v-if="activeTeam.submitStatus === 'accepted'" type="button" class="osb-btn add" @click="addToOrder">追加訂單</button>
-          <button v-if="activeTeam.submitStatus === 'rejected'" type="button" class="osb-btn reedit" @click="reeditResubmit">重新編輯並送出</button>
-        </div>
-      </div>
-    </section>
-
-    <section v-if="activeTeam" class="panel org-panel pay-setup">
-      <div class="panel-head">
-        <h2>團購公告與付款</h2>
-        <span>會顯示給訂購人參考</span>
-      </div>
-      <label class="text-block pay-fld">
-        公告內容
-        <textarea :value="activeTeam.hostNote" @input="teams.updateTeam(activeTeam.id, { hostNote: $event.target.value })"></textarea>
-      </label>
-      <div class="form-grid team-pay-grid">
-        <label class="pay-fld"><span class="pay-fld-k">LINE ID</span><input :value="activeTeam.pay.lineId" @input="updatePayment({ lineId: $event.target.value })" /></label>
-        <label class="pay-fld"><span class="pay-fld-k">匯款資訊</span><input :value="activeTeam.pay.bank" @input="updatePayment({ bank: $event.target.value })" /></label>
-      </div>
-      <button type="button" class="switch-line pay-switch" :class="{ on: activeTeam.pay.cash }" @click="updatePayment({ cash: !activeTeam.pay.cash })">
-        {{ activeTeam.pay.cash ? '接受現金付款' : '不收現金' }}
-      </button>
-    </section>
-
-    <section class="panel org-panel proxy-panel" :class="{ collapsed: !quickAddOpen }">
-      <div class="panel-head">
-        <div>
-          <h2>訂購人管理</h2>
-          <span>{{ quickAddOpen ? (activeOrder?.company || '尚無訂單') : '需要代加單時再打開' }}</span>
-        </div>
-        <button type="button" class="primary-btn quick-add-trigger" @click="quickAddOpen = !quickAddOpen">
-          {{ quickAddOpen ? '收合' : '追加訂購人' }}
-        </button>
-      </div>
-      <template v-if="quickAddOpen">
-        <select v-model="activeOrderId" class="search-input quick-add-order">
-          <option v-if="!activeTeamOrders.length" value="">尚無訂單，追加後會自動建立</option>
-          <option v-for="order in activeTeamOrders" :key="order.id" :value="order.id">{{ order.company }} · {{ order.date }}</option>
-        </select>
-        <div class="seg-row quick-add-mode" role="tablist" aria-label="快速追加模式">
-          <button type="button" :class="{ on: quickAddMode === 'menu' }" @click="quickAddMode = 'menu'">簡易選品</button>
-          <button type="button" :class="{ on: quickAddMode === 'paste' }" @click="quickAddMode = 'paste'">貼上文字</button>
-        </div>
-        <p class="set-note quick-add-hint">
-          {{ quickAddMode === 'menu' ? '先填訂購人，再用商品卡片加數量。' : '適合從 LINE 或試算表貼入「品名,數量,單價」。' }}
-        </p>
-        <div class="form-grid">
-          <label>姓名<input v-model="quickMember.name" /></label>
-          <label>部門<input v-model="quickMember.department" /></label>
-          <label>電話<input v-model="quickMember.phone" /></label>
-          <label>備註<input v-model="quickMember.note" /></label>
-          <label v-if="quickAddMode === 'paste'" class="span-2">
-            備用文字品項
-            <textarea v-model="quickMember.itemsText" class="parts-textarea" placeholder="品名,數量,單價;品名,數量,單價"></textarea>
-          </label>
-        </div>
-        <div v-if="quickAddMode === 'menu'" class="proxy-order-menu">
-          <div class="panel-subhead">
-            <h3>代選品項</h3>
-            <span>目前 ${{ quickCartTotal.toLocaleString() }}</span>
+          <div id="teamOpen" class="share-box team-open">
+            <input id="teamLink" class="team-id" :value="shareLink" readonly />
+            <button type="button" class="team-copy" @click="copyShareLink">複製連結</button>
+            <button type="button" class="team-line" @click="openLineShare">LINE 分享</button>
           </div>
-          <div class="seg-row">
-            <button
-              v-for="group in menuGroups"
-              :key="group.key"
-              type="button"
-              :class="{ on: quickMenuType === group.key }"
-              @click="quickMenuType = group.key"
-            >
-              {{ group.label }}
-            </button>
-          </div>
-          <div class="quick-menu">
-            <article v-for="item in quickMenu" :key="item.id" class="quick-menu-item">
-              <div>
-                <strong>{{ item.name }}</strong>
-                <small v-if="item.desc">{{ item.desc }}</small>
-                <small v-else-if="item.parts">組合優惠</small>
-                <small v-else>庫存 {{ item.stock }}</small>
+          <textarea v-model="shareText" class="parts-textarea team-note-l" aria-label="LINE 分享文字"></textarea>
+
+          <div id="orgSubmitBar" class="submit-state org-submit-bar" :class="activeTeam.submitStatus || 'draft'">
+            <div class="osb-main">
+              <div class="osb-h">
+                <strong class="osb-badge" :class="activeTeam.submitStatus || 'draft'">{{ teams.submitStatusLabel(activeTeam.submitStatus) }}</strong>
+                <small v-if="activeTeam.deliverAt" class="osb-when">送單時間 {{ activeTeam.deliverAt.replace('T', ' ') }}</small>
               </div>
-              <b>${{ item.price }}</b>
-              <div class="qty-row mini">
-                <button type="button" @click="changeQuickQty(item.id, -1)">−</button>
-                <span>{{ quickCart[item.id] || 0 }}</span>
-                <button type="button" @click="changeQuickQty(item.id, 1)">+</button>
-              </div>
-            </article>
-          </div>
-          <div class="proxy-cart-summary" :class="{ empty: !quickCartItems.length }">
-            <div>
-              <strong>{{ quickCartItems.length ? `${quickCartItems.length} 種品項` : '尚未選品項' }}</strong>
-              <small>
-                {{ quickCartItems.length
-                  ? quickCartItems.map((item) => `${item.name} x${item.qty}`).join('、')
-                  : '可用上方按鈕選品，或保留文字格式貼單。' }}
-              </small>
+              <small class="osb-desc">{{ submitDescription }}</small>
             </div>
-            <button type="button" class="ghost-btn" :disabled="!quickCartItems.length" @click="clearQuickCart">清空選品</button>
+            <div class="action-row osb-actions">
+              <button v-if="!activeTeam.submitStatus" type="button" class="primary-btn osb-btn" @click="openSubmitModal">整批送單給店家</button>
+              <button v-if="activeTeam.submitStatus === 'pending'" type="button" class="osb-btn recall" @click="recallOrder">收回訂單</button>
+              <button v-if="activeTeam.submitStatus === 'pending'" type="button" class="osb-btn demo" @click="demoReview('accept')">店家接單</button>
+              <button v-if="activeTeam.submitStatus === 'pending'" type="button" class="osb-btn demo" @click="demoReview('reject')">店家拒單</button>
+              <button v-if="activeTeam.submitStatus === 'rejected'" type="button" class="osb-btn reedit" @click="reeditResubmit">重新編輯並送出</button>
+            </div>
           </div>
-        </div>
-        <div class="action-row org-actions">
-          <button type="button" class="primary-btn org-act" @click="addQuickMember">加入此訂購人</button>
-          <small class="set-note">{{ quickAddMode === 'menu' ? '請至少選一個品項再加入。' : '文字格式可用逗號或分號分隔多筆品項。' }}</small>
-        </div>
-      </template>
+        </section>
+
+        <section class="org-settings-section pay-setup">
+          <div class="panel-subhead org-settings-subhead">
+            <h3>公告與付款</h3>
+            <span>會顯示給訂購人參考</span>
+          </div>
+          <label class="text-block pay-fld">
+            公告內容
+            <textarea :value="activeTeam.hostNote" @input="teams.updateTeam(activeTeam.id, { hostNote: $event.target.value })"></textarea>
+          </label>
+          <div class="form-grid team-pay-grid">
+            <label class="pay-fld"><span class="pay-fld-k">LINE ID</span><input :value="activeTeam.pay.lineId" @input="updatePayment({ lineId: $event.target.value })" /></label>
+            <label class="pay-fld"><span class="pay-fld-k">匯款資訊</span><input :value="activeTeam.pay.bank" @input="updatePayment({ bank: $event.target.value })" /></label>
+          </div>
+          <button type="button" class="switch-line pay-switch" :class="{ on: activeTeam.pay.cash }" @click="updatePayment({ cash: !activeTeam.pay.cash })">
+            {{ activeTeam.pay.cash ? '接受現金付款' : '不收現金' }}
+          </button>
+        </section>
+      </div>
     </section>
 
     <section id="orgPeople" class="panel org-panel">
       <div class="panel-head">
-        <h2>訂購人明細</h2>
-        <span>{{ memberCount }} 位</span>
+        <div>
+          <h2>訂購人明細</h2>
+          <span>{{ memberCount }} 位</span>
+        </div>
+        <button v-if="canAddMember" type="button" class="primary-btn quick-add-trigger" @click="openQuickAddModal">追加訂購人</button>
       </div>
       <div class="member-list">
         <article v-for="order in activeTeamOrders" :key="order.id" class="order-card">
@@ -674,6 +615,91 @@ function printA4() {
         <footer class="date-box-ft">
           <button type="button" class="ghost-btn date-cancel" @click="submitOpen = false">取消</button>
           <button type="button" class="primary-btn date-apply" @click="confirmSubmit">確認送單</button>
+        </footer>
+      </section>
+    </div>
+
+    <div v-if="quickAddOpen" id="quickAddModal" class="modal-backdrop date-modal show" @click.self="closeQuickAddModal">
+      <section class="edit-modal date-box quick-add-modal">
+        <header class="date-box-h">
+          <div>
+            <h2>追加訂購人</h2>
+            <small>{{ activeOrder?.company || '尚無訂單，追加後會自動建立' }}</small>
+          </div>
+          <button type="button" @click="closeQuickAddModal">×</button>
+        </header>
+
+        <select v-model="activeOrderId" class="search-input quick-add-order">
+          <option v-if="!activeTeamOrders.length" value="">尚無訂單，追加後會自動建立</option>
+          <option v-for="order in activeTeamOrders" :key="order.id" :value="order.id">{{ order.company }} · {{ order.date }}</option>
+        </select>
+        <div class="seg-row quick-add-mode" role="tablist" aria-label="快速追加模式">
+          <button type="button" :class="{ on: quickAddMode === 'menu' }" @click="quickAddMode = 'menu'">簡易選品</button>
+          <button type="button" :class="{ on: quickAddMode === 'paste' }" @click="quickAddMode = 'paste'">貼上文字</button>
+        </div>
+        <p class="set-note quick-add-hint">
+          {{ quickAddMode === 'menu' ? '先填訂購人，再用商品卡片加數量。' : '適合從 LINE 或試算表貼入「品名,數量,單價」。' }}
+        </p>
+        <div class="form-grid">
+          <label>姓名<input v-model="quickMember.name" /></label>
+          <label>部門<input v-model="quickMember.department" /></label>
+          <label>電話<input v-model="quickMember.phone" /></label>
+          <label>備註<input v-model="quickMember.note" /></label>
+          <label v-if="quickAddMode === 'paste'" class="span-2">
+            備用文字品項
+            <textarea v-model="quickMember.itemsText" class="parts-textarea" placeholder="品名,數量,單價;品名,數量,單價"></textarea>
+          </label>
+        </div>
+        <div v-if="quickAddMode === 'menu'" class="proxy-order-menu">
+          <div class="panel-subhead">
+            <h3>代選品項</h3>
+            <span>目前 ${{ quickCartTotal.toLocaleString() }}</span>
+          </div>
+          <div class="seg-row">
+            <button
+              v-for="group in menuGroups"
+              :key="group.key"
+              type="button"
+              :class="{ on: quickMenuType === group.key }"
+              @click="quickMenuType = group.key"
+            >
+              {{ group.label }}
+            </button>
+          </div>
+          <div class="quick-menu">
+            <article v-for="item in quickMenu" :key="item.id" class="quick-menu-item">
+              <div>
+                <strong>{{ item.name }}</strong>
+                <small v-if="item.desc">{{ item.desc }}</small>
+                <small v-else-if="item.parts">組合優惠</small>
+                <small v-else>庫存 {{ item.stock }}</small>
+              </div>
+              <b>${{ item.price }}</b>
+              <div class="qty-row mini">
+                <button type="button" @click="changeQuickQty(item.id, -1)">−</button>
+                <span>{{ quickCart[item.id] || 0 }}</span>
+                <button type="button" @click="changeQuickQty(item.id, 1)">+</button>
+              </div>
+            </article>
+          </div>
+          <div class="proxy-cart-summary" :class="{ empty: !quickCartItems.length }">
+            <div>
+              <strong>{{ quickCartItems.length ? `${quickCartItems.length} 種品項` : '尚未選品項' }}</strong>
+              <small>
+                {{ quickCartItems.length
+                  ? quickCartItems.map((item) => `${item.name} x${item.qty}`).join('、')
+                  : '可用上方按鈕選品，或保留文字格式貼單。' }}
+              </small>
+            </div>
+            <button type="button" class="ghost-btn" :disabled="!quickCartItems.length" @click="clearQuickCart">清空選品</button>
+          </div>
+        </div>
+        <footer class="date-box-ft quick-add-footer">
+          <small class="set-note">{{ quickAddMode === 'menu' ? '請至少選一個品項再加入。' : '文字格式可用逗號或分號分隔多筆品項。' }}</small>
+          <div class="action-row org-actions">
+            <button type="button" class="ghost-btn date-cancel" @click="closeQuickAddModal">取消</button>
+            <button type="button" class="primary-btn date-apply" @click="addQuickMember">加入此訂購人</button>
+          </div>
         </footer>
       </section>
     </div>
