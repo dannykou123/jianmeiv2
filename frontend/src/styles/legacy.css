@@ -1515,6 +1515,15 @@ button {
   color: var(--rose-hi);
 }
 
+.org-member-actions {
+  margin-top: 10px;
+}
+
+.org-member-edit {
+  width: fit-content;
+  min-width: 68px;
+}
+
 .dash-prep {
   display: grid;
   gap: 8px;
@@ -3009,9 +3018,14 @@ button:disabled {
   margin-bottom: 14px;
 }
 
-#editOrderRows {
+#editOrderRows,
+#orgMemberEditRows {
   display: grid;
   gap: 0;
+}
+
+.org-member-editor-meta {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .eo-row {

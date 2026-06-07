@@ -36,6 +36,8 @@ const submitOpen = ref(false)
 const newTeamOpen = ref(false)
 const historyOpen = ref(false)
 const quickAddOpen = ref(false)
+const memberEditor = ref(null)
+const memberEditorProductInput = ref('')
 const teamFormMode = ref('create')
 const editingTeamId = ref('')
 const shareText = ref('開團囉！！請點網址進去點餐')
@@ -49,7 +51,6 @@ let countdownTimer = null
 const quickMember = reactive({
   name: '',
   department: '',
-  phone: '',
   note: '',
   itemsText: '招牌綜合滷味,1,180'
 })
@@ -102,6 +103,24 @@ const quickCartItems = computed(() => Object.entries(quickCart)
   })
   .filter(Boolean))
 const quickCartTotal = computed(() => quickCartItems.value.reduce((sum, item) => sum + item.subtotal, 0))
+const productMetaByName = computed(() => new Map(
+  Object.entries(catalog.products).flatMap(([type, list]) => list.map((item) => [item.name, { item, type }]))
+))
+const productOptions = computed(() => catalog.allProducts.map((item) => ({
+  name: item.name,
+  price: item.price,
+  isCombo: Boolean(item.parts)
+})))
+const memberEditorTitle = computed(() => {
+  if (!memberEditor.value) return ''
+  return `編輯 ${memberEditor.value.name || '訂購人'}`
+})
+const memberEditorTotal = computed(() => {
+  if (!memberEditor.value) return 0
+  return memberEditor.value.items.reduce((sum, [, qty, price]) => {
+    return sum + Number(qty || 0) * Number(price || 0)
+  }, 0)
+})
 const visibleOrganizerHistory = computed(() => {
   if (!uiSettings.team.keepOrganizerHistory) return []
   const limit = Math.max(0, Number(uiSettings.team.organizerHistoryLimit) || 0)
@@ -217,6 +236,10 @@ function parseItems(text) {
     .filter(([name]) => name)
 }
 
+function productPrice(name) {
+  return Number(productMetaByName.value.get(name)?.item?.price) || 0
+}
+
 function changeQuickQty(id, delta) {
   quickCart[id] = Math.max(0, (quickCart[id] || 0) + delta)
   if (!quickCart[id]) delete quickCart[id]
@@ -252,14 +275,12 @@ function addQuickMember() {
   orders.addMember(order.id, {
     name: quickMember.name,
     department: quickMember.department,
-    phone: quickMember.phone,
     note: quickMember.note,
     items
   })
   Object.assign(quickMember, {
     name: '',
     department: '',
-    phone: '',
     note: '',
     itemsText: '招牌綜合滷味,1,180'
   })
@@ -406,6 +427,105 @@ function closeQuickAddModal() {
   quickAddOpen.value = false
 }
 
+function openEditMember(order, member) {
+  const memberIndex = order.members.findIndex((item) => item.id === member.id || item === member)
+  memberEditor.value = {
+    orderId: order.id,
+    orderCompany: order.company,
+    memberId: member.id,
+    memberIndex,
+    name: member.name || '',
+    department: member.department || member.dept || '',
+    note: member.note || '',
+    items: (member.items || []).map(([name, qty, price]) => [
+      name,
+      Math.max(1, Number(qty) || 1),
+      Number(price) || productPrice(name)
+    ])
+  }
+  memberEditorProductInput.value = ''
+  message.value = ''
+}
+
+function closeMemberEditor() {
+  memberEditor.value = null
+  memberEditorProductInput.value = ''
+}
+
+function changeMemberEditorItemQty(itemIndex, delta) {
+  const item = memberEditor.value?.items[itemIndex]
+  if (!item) return
+  item[1] = Math.max(1, Number(item[1] || 0) + delta)
+}
+
+function removeMemberEditorItem(itemIndex) {
+  if (!memberEditor.value) return
+  memberEditor.value.items.splice(itemIndex, 1)
+}
+
+function addMemberEditorItem() {
+  if (!memberEditor.value) return
+  const name = memberEditorProductInput.value.trim()
+  if (!name) return
+  const meta = productMetaByName.value.get(name)
+  if (!meta) {
+    message.value = `找不到品項：${name}`
+    return
+  }
+  const exists = memberEditor.value.items.find((item) => item[0] === name)
+  if (exists) {
+    exists[1] += 1
+  } else {
+    memberEditor.value.items.push([name, 1, Number(meta.item.price) || 0])
+  }
+  memberEditorProductInput.value = ''
+}
+
+function saveMemberEditor() {
+  if (!memberEditor.value) return
+  const draft = memberEditor.value
+  const order = orders.findOrder(draft.orderId)
+  if (!order) {
+    message.value = '找不到原訂單'
+    closeMemberEditor()
+    return
+  }
+  const memberIndex = order.members.findIndex((member, index) => {
+    return member.id === draft.memberId || index === draft.memberIndex
+  })
+  if (memberIndex < 0) {
+    message.value = '找不到訂購人'
+    closeMemberEditor()
+    return
+  }
+  if (!draft.name.trim()) {
+    message.value = '請輸入訂購人姓名'
+    return
+  }
+  if (!draft.items.length) {
+    message.value = '請至少保留一個品項'
+    return
+  }
+  const members = order.members.map((member, index) => {
+    if (index !== memberIndex) return member
+    return {
+      ...member,
+      id: member.id || draft.memberId || `${order.id}-M${index + 1}`,
+      name: draft.name.trim(),
+      department: draft.department.trim(),
+      note: draft.note.trim(),
+      items: draft.items.map(([name, qty, price]) => [
+        name,
+        Math.max(1, Number(qty) || 1),
+        Number(price) || productPrice(name)
+      ])
+    }
+  })
+  orders.updateOrder(order.id, { members })
+  message.value = `已更新「${members[memberIndex].name}」`
+  closeMemberEditor()
+}
+
 function updatePayment(patch) {
   if (!activeTeam.value) return
   teams.updateTeam(activeTeam.value.id, {
@@ -529,12 +649,12 @@ function printA4() {
           <span>{{ activeTeam.name }} · 截止 {{ teamDeadlineText(activeTeam) }}</span>
         </div>
         <div class="action-row org-settings-actions">
-          <span class="pill">{{ teams.submitStatusLabel(activeTeam.submitStatus) }}</span>
-          <button v-if="!activeTeam.submitStatus" type="button" class="primary-btn org-submit-primary" @click="openSubmitModal">整批送單給店家</button>
-          <button v-else-if="activeTeam.submitStatus === 'pending'" type="button" class="ghost-btn org-submit-recall" @click="recallOrder">收回訂單</button>
-          <button v-else-if="activeTeam.submitStatus === 'rejected'" type="button" class="primary-btn org-submit-primary" @click="reeditResubmit">重新編輯並送出</button>
+          <span class="pill org-submit-status">{{ teams.submitStatusLabel(activeTeam.submitStatus) }}</span>
+          <button v-if="!activeTeam.submitStatus" type="button" class="primary-btn org-submit-primary org-submit-top" @click="openSubmitModal">整批送單給店家</button>
+          <button v-else-if="activeTeam.submitStatus === 'pending'" type="button" class="ghost-btn org-submit-recall org-submit-top" @click="recallOrder">收回訂單</button>
+          <button v-else-if="activeTeam.submitStatus === 'rejected'" type="button" class="primary-btn org-submit-primary org-submit-top" @click="reeditResubmit">重新編輯並送出</button>
+          <button type="button" class="ghost-btn org-print-a4" @click="printA4">列印訂單表</button>
           <button type="button" class="ghost-btn org-edit-team" @click="openEditTeam">編輯開團資訊</button>
-          <button type="button" class="ghost-btn org-print-a4" @click="printA4">列印 A4 訂單表</button>
         </div>
       </div>
 
@@ -585,8 +705,11 @@ function printA4() {
             <article v-for="member in order.members" :key="member.id" class="member-row">
               <div>
                 <strong>{{ member.name }}</strong>
-                <small>{{ member.department || '無部門' }} · {{ member.phone || '無電話' }}</small>
+                <small>{{ member.department || '無部門' }}</small>
                 <small v-if="member.note">備註：{{ member.note }}</small>
+                <div class="member-actions org-member-actions">
+                  <button type="button" class="person-edit org-member-edit" @click="openEditMember(order, member)">編輯</button>
+                </div>
               </div>
               <ul>
                 <li v-for="([name, qty, price], index) in member.items" :key="index">
@@ -604,6 +727,63 @@ function printA4() {
     </template>
 
     <p v-if="message" class="status-line">{{ message }}</p>
+
+    <div v-if="memberEditor" id="orgMemberEditModal" class="modal-backdrop style-modal show" @click.self="closeMemberEditor">
+      <section class="edit-modal ppv-box edit-order-modal org-member-editor">
+        <header class="ppv-head">
+          <span id="orgMemberEditTitle">{{ memberEditorTitle }}</span>
+          <button type="button" @click="closeMemberEditor">×</button>
+        </header>
+
+        <div class="ppv-body edit-order-body">
+          <div class="form-grid edit-order-meta org-member-editor-meta">
+            <label>訂購人姓名<input v-model.trim="memberEditor.name" /></label>
+            <label>單位 / 部門<input v-model.trim="memberEditor.department" /></label>
+          </div>
+
+          <div id="orgMemberEditRows">
+            <div v-if="!memberEditor.items.length" class="eo-empty">此訂購人沒有品項</div>
+            <div v-for="(item, itemIndex) in memberEditor.items" :key="`${item[0]}-${itemIndex}`" class="eo-row" :data-i="itemIndex">
+              <div class="eo-name">{{ item[0] }}</div>
+              <div class="eo-ctrl">
+                <button type="button" class="eo-step" @click="changeMemberEditorItemQty(itemIndex, -1)">−</button>
+                <span class="eo-q">{{ item[1] }}</span>
+                <button type="button" class="eo-step" @click="changeMemberEditorItemQty(itemIndex, 1)">＋</button>
+                <span class="eo-p">${{ Number(item[2] || 0).toLocaleString() }}</span>
+                <button type="button" class="eo-del" aria-label="刪除" @click="removeMemberEditorItem(itemIndex)">刪除</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="et-additem eo-additem">
+            <input
+              v-model="memberEditorProductInput"
+              list="orgMemberEditorProducts"
+              placeholder="輸入品名加入品項..."
+              @keyup.enter="addMemberEditorItem"
+            />
+            <button type="button" @click="addMemberEditorItem">加入</button>
+          </div>
+
+          <label class="eo-note-l">
+            備註
+            <textarea id="orgMemberEditNote" v-model.trim="memberEditor.note" rows="2" placeholder="例：不要香菜、少辣"></textarea>
+          </label>
+
+          <div class="et-foot-sum">訂購人合計 <b>${{ memberEditorTotal.toLocaleString() }}</b></div>
+          <datalist id="orgMemberEditorProducts">
+            <option v-for="item in productOptions" :key="item.name" :value="item.name">
+              {{ item.isCombo ? '組合' : '單品' }} · ${{ item.price }}
+            </option>
+          </datalist>
+        </div>
+
+        <footer class="ppv-foot">
+          <button type="button" class="date-cancel" @click="closeMemberEditor">取消</button>
+          <button type="button" class="date-apply" @click="saveMemberEditor">儲存變更</button>
+        </footer>
+      </section>
+    </div>
 
     <div v-if="submitOpen" id="submitModal" class="modal-backdrop date-modal show" @click.self="submitOpen = false">
       <section class="edit-modal date-box">
@@ -646,7 +826,6 @@ function printA4() {
         <div class="form-grid">
           <label>姓名<input v-model="quickMember.name" /></label>
           <label>部門<input v-model="quickMember.department" /></label>
-          <label>電話<input v-model="quickMember.phone" /></label>
           <label>備註<input v-model="quickMember.note" /></label>
           <label v-if="quickAddMode === 'paste'" class="span-2">
             備用文字品項

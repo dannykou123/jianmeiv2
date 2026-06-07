@@ -33,7 +33,12 @@ expectIncludes('class="primary-btn quick-add-trigger"', 'the add-orderer action 
 expectIncludes('id="quickAddModal"', 'the quick add modal')
 expectIncludes('class="org-settings-grid org-settings-clean"', 'the simplified group settings layout')
 expectIncludes('class="action-row org-settings-actions"', 'the prominent group settings action area')
-expectIncludes('class="primary-btn org-submit-primary"', 'the prominent submit-to-shop action')
+expectIncludes('class="pill org-submit-status"', 'the status pill in the organizer settings header')
+expectIncludes('class="primary-btn org-submit-primary org-submit-top"', 'the prominent top-right submit-to-shop action')
+expectIncludes('列印訂單表', 'the renamed order print action')
+expectIncludes('@click="openEditMember(order, member)"', 'the member edit action in orderer details')
+expectIncludes('id="orgMemberEditModal"', 'the organizer member edit modal')
+expectIncludes('function saveMemberEditor()', 'the organizer member edit save handler')
 expectExcludes('class="panel org-panel proxy-panel"', 'the standalone orderer management panel')
 expectExcludes('class="tcard-next"', 'the next-step prompt on group cards')
 expectExcludes('function teamNextAction', 'the next-step prompt helper')
@@ -42,6 +47,29 @@ expectExcludes('id="orgSubmitBar"', 'the verbose submit status block')
 expectExcludes('class="primary-btn osb-btn"', 'the primary submit action inside the status bar')
 expectExcludes('demoReview(\'accept\')', 'the shop accept demo action in organizer settings')
 expectExcludes('demoReview(\'reject\')', 'the shop reject demo action in organizer settings')
+expectExcludes('列印 A4 訂單表', 'the old A4-specific print action label')
+expectExcludes('v-model.trim="memberEditor.phone"', 'phone editing in organizer member editor')
+expectExcludes('v-model="quickMember.phone"', 'phone entry in organizer quick add')
+
+const actionsStart = source.indexOf('class="action-row org-settings-actions"')
+const actionsEnd = source.indexOf('</div>', actionsStart)
+const actionsSource = source.slice(actionsStart, actionsEnd)
+const actionOrder = [
+  ['class="pill org-submit-status"', 'status pill'],
+  ['class="primary-btn org-submit-primary org-submit-top"', 'submit action'],
+  ['列印訂單表', 'print action'],
+  ['編輯開團資訊', 'edit group action']
+].map(([needle, label]) => {
+  const index = actionsSource.indexOf(needle)
+  if (index < 0) throw new Error(`Expected OrganizerView.vue to include ${label}`)
+  return { index, label }
+})
+
+for (let i = 1; i < actionOrder.length; i += 1) {
+  if (actionOrder[i].index <= actionOrder[i - 1].index) {
+    throw new Error('Expected organizer settings actions to be ordered: status, submit, print, edit group')
+  }
+}
 
 if (!/\.org-settings-grid\s*\{[^}]*grid-template-columns:\s*1fr;/s.test(styles)) {
   throw new Error('Expected merged organizer settings to use a single-column layout')
