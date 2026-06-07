@@ -4,14 +4,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { useCatalogStore } from '../stores/catalog.js'
 import { useOrdersStore } from '../stores/orders.js'
 import { teamDeadlineText, useTeamsStore } from '../stores/teams.js'
-import { useUiSettingsStore } from '../stores/uiSettings.js'
 
 const route = useRoute()
 const router = useRouter()
 const catalog = useCatalogStore()
 const orders = useOrdersStore()
 const teams = useTeamsStore()
-const uiSettings = useUiSettingsStore()
 const form = reactive({ name: '', phone: '', note: '' })
 const cart = reactive({})
 const activeType = ref('normal')
@@ -21,68 +19,6 @@ const transferLast5 = ref('')
 const successOpen = ref(false)
 const successSummary = ref(null)
 const message = ref('')
-const history = ref([
-  {
-    id: 'H20260516',
-    name: '',
-    phone: '',
-    note: '',
-    payment: 'cash',
-    items: [['招牌綜合滷味', 1, 180], ['茶葉蛋', 3, 15]],
-    total: 225,
-    createdAt: '2026/05/16'
-  },
-  {
-    id: 'H20260509',
-    name: '',
-    phone: '',
-    note: '',
-    payment: 'cash',
-    items: [['麻辣鴨血', 1, 120], ['滷雞翅', 2, 95]],
-    total: 310,
-    createdAt: '2026/05/09'
-  },
-  {
-    id: 'H20260502',
-    name: '',
-    phone: '',
-    note: '',
-    payment: 'cash',
-    items: [['招牌綜合滷味', 2, 180]],
-    total: 360,
-    createdAt: '2026/05/02'
-  },
-  {
-    id: 'H20260425',
-    name: '',
-    phone: '',
-    note: '',
-    payment: 'transfer',
-    items: [['真空滷牛腱', 1, 240], ['滷豆干', 2, 40]],
-    total: 320,
-    createdAt: '2026/04/25'
-  },
-  {
-    id: 'H20260418',
-    name: '',
-    phone: '',
-    note: '',
-    payment: 'cash',
-    items: [['茶葉蛋', 5, 15], ['滷海帶', 3, 30]],
-    total: 165,
-    createdAt: '2026/04/18'
-  },
-  {
-    id: 'H20260411',
-    name: '',
-    phone: '',
-    note: '',
-    payment: 'cash',
-    items: [['招牌綜合滷味', 1, 180]],
-    total: 180,
-    createdAt: '2026/04/11'
-  }
-])
 
 const menuGroups = computed(() => catalog.orderMenuGroups)
 const activeGroup = computed(() => menuGroups.value.find((group) => group.key === activeType.value) || menuGroups.value[0] || { items: [] })
@@ -132,12 +68,6 @@ const cartItems = computed(() => Object.entries(cart)
   .filter(Boolean))
 const cartCount = computed(() => cartItems.value.reduce((sum, item) => sum + item.qty, 0))
 const total = computed(() => cartItems.value.reduce((sum, item) => sum + item.subtotal, 0))
-const visibleHistory = computed(() => {
-  if (!uiSettings.team.keepOrdererHistory) return []
-  const limit = Math.max(0, Number(uiSettings.team.ordererHistoryLimit) || 0)
-  return limit > 0 ? history.value.slice(0, limit) : history.value
-})
-const canReorder = computed(() => uiSettings.team.keepOrdererHistory && uiSettings.team.allowReorder)
 
 watch(availablePayments, (options) => {
   if (payment.value && !options.some((option) => option.key === payment.value)) {
@@ -229,17 +159,6 @@ function submit() {
     address: activeTeam.value?.company || '店取',
     teamId: activeTeam.value?.id || ''
   })
-  history.value.unshift({
-    id,
-    name: form.name,
-    phone: form.phone,
-    note: form.note,
-    teamName: activeTeam.value?.name || '',
-    payment: payment.value,
-    items,
-    total: orderTotal,
-    createdAt: new Date().toLocaleString('zh-TW')
-  })
   successSummary.value = { ...summary, id }
   clearCart()
   form.name = ''
@@ -250,24 +169,6 @@ function submit() {
   checkoutOpen.value = false
   successOpen.value = true
   message.value = ''
-}
-
-function reorder(record) {
-  if (!canReorder.value) {
-    message.value = '店家目前未開放「再訂一次」'
-    return
-  }
-  clearCart()
-  record.items.forEach(([name, qty]) => {
-    const product = catalog.allProducts.find((item) => item.name === name)
-    if (product) cart[product.id] = (cart[product.id] || 0) + qty
-  })
-  form.name = record.name
-  form.phone = record.phone
-  form.note = record.note
-  payment.value = availablePayments.value.some((option) => option.key === record.payment) ? record.payment : ''
-  transferLast5.value = ''
-  message.value = '已帶入歷史訂單，可直接調整後送出'
 }
 </script>
 
@@ -415,30 +316,6 @@ function reorder(record) {
       </div>
       <button type="button" @click="openCheckout">查看購物車</button>
     </div>
-
-    <section v-if="uiSettings.team.keepOrdererHistory" class="hist-sec">
-      <div class="hist-h">
-        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
-        我的點餐紀錄
-      </div>
-      <div v-if="!visibleHistory.length" class="hist-empty">還沒有點餐紀錄</div>
-      <template v-else>
-        <article v-for="record in visibleHistory" :key="record.id" class="hist-item">
-          <div class="hist-top">
-            <span class="hist-date">
-              {{ record.createdAt }}
-              <span class="hist-badge done">已完成</span>
-            </span>
-            <span class="hist-amt">${{ record.total.toLocaleString() }}</span>
-          </div>
-          <div class="hist-sub">{{ record.items.map(([name, qty]) => `${name} ×${qty}`).join('、') }}</div>
-          <button v-if="canReorder" type="button" class="hist-reorder" @click="reorder(record)">
-            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M23 4v6h-6M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
-            再訂一次
-          </button>
-        </article>
-      </template>
-    </section>
 
     <p v-if="message" class="status-line">{{ message }}</p>
     </div>

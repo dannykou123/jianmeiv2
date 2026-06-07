@@ -3727,30 +3727,6 @@ button:disabled {
   line-height: 1.6;
 }
 
-.hist-reorder {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 36px;
-  margin-top: 10px;
-  padding: 0 14px;
-  border: 1px solid rgba(228, 222, 210, .16);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, .05);
-  color: #cfc4b2;
-  font-weight: 800;
-}
-
-.hist-reorder:hover {
-  border-color: #b89f75;
-  color: #f4dfb4;
-}
-
-.hist-reorder .ico {
-  width: 15px;
-  height: 15px;
-}
-
 .ord-success {
   position: fixed;
   inset: 0;

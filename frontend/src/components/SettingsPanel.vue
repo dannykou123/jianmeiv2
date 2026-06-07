@@ -440,7 +440,7 @@ function deleteRole(roleId) {
           <h3>團購設定</h3>
           <span>每日上限 {{ team.maxOpenTeams }} 團</span>
         </div>
-        <p class="set-note">控制團主發起團購的預設截止時間、每日開團上限與再訂一次功能。</p>
+        <p class="set-note">控制團主發起團購的預設截止時間與每日開團上限。</p>
         <div class="form-grid acc-fields">
           <label class="fld-l">預設收單截止
             <input :value="team.defaultDeadline" type="time" @change="setDefaultDeadline($event.target.value)" />
@@ -452,23 +452,14 @@ function deleteRole(roleId) {
             </span>
           </label>
         </div>
-        <div id="rowReorder" class="set-row sub-row">
-          <div class="set-row-l">
-            <div class="set-row-t">允許「再訂一次」</div>
-            <div class="set-row-d">訂購人可一鍵依歷史訂單重新下單</div>
-          </div>
-          <button id="swReorder" type="button" class="switch switch-line" :class="{ on: team.allowReorder }" role="switch" :aria-checked="team.allowReorder" @click="toggleTeamFlag('allowReorder', '「再訂一次」')">
-            <span class="knob"></span>
-          </button>
-        </div>
       </article>
 
       <article class="settings-card set-card" data-sg="team">
         <div class="panel-subhead set-card-t">
           <h3>可見訂單紀錄</h3>
-          <span>團購主 {{ team.keepOrganizerHistory ? '顯示' : '隱藏' }} · 訂購人 {{ team.keepOrdererHistory ? '顯示' : '隱藏' }}</span>
+          <span>團購主 {{ team.keepOrganizerHistory ? '顯示' : '隱藏' }}</span>
         </div>
-        <p class="set-note">設定團購主與訂購人是否顯示歷史訂單，以及各自能往回查看多少筆。</p>
+        <p class="set-note">設定團購主是否顯示歷史團購，以及能往回查看多少筆。</p>
         <div class="settings-switches">
           <div class="set-row">
             <div class="set-row-l">
@@ -476,15 +467,6 @@ function deleteRole(roleId) {
               <div class="set-row-d">關閉後團購主頁面不顯示「過去的團購」</div>
             </div>
             <button id="swOrg" type="button" class="switch switch-line" :class="{ on: team.keepOrganizerHistory }" role="switch" :aria-checked="team.keepOrganizerHistory" @click="toggleTeamFlag('keepOrganizerHistory', '團購主歷史訂單')">
-              <span class="knob"></span>
-            </button>
-          </div>
-          <div class="set-row">
-            <div class="set-row-l">
-              <div class="set-row-t">訂購人顯示歷史訂單</div>
-              <div class="set-row-d">關閉後訂購人頁面不顯示「我的點餐紀錄」</div>
-            </div>
-            <button id="swOrd" type="button" class="switch switch-line" :class="{ on: team.keepOrdererHistory }" role="switch" :aria-checked="team.keepOrdererHistory" @click="toggleTeamFlag('keepOrdererHistory', '訂購人歷史訂單')">
               <span class="knob"></span>
             </button>
           </div>
@@ -501,21 +483,6 @@ function deleteRole(roleId) {
                 :disabled="!team.keepOrganizerHistory"
                 placeholder="全部"
                 @change="setHistoryLimit('organizerHistoryLimit', '團購主可見紀錄', $event.target.value)"
-              />
-              <span>筆</span>
-            </span>
-          </label>
-          <label id="rowOrdCount" class="set-row sub-row history-limit-row" :class="{ disabled: !team.keepOrdererHistory }">
-            訂購人可見筆數
-            <span class="count-input">
-              <input
-                id="histOrdInput"
-                :value="team.ordererHistoryLimit"
-                type="number"
-                min="0"
-                :disabled="!team.keepOrdererHistory"
-                placeholder="全部"
-                @change="setHistoryLimit('ordererHistoryLimit', '訂購人可見紀錄', $event.target.value)"
               />
               <span>筆</span>
             </span>

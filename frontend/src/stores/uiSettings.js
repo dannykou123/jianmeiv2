@@ -3,10 +3,7 @@ import { defineStore } from 'pinia'
 const defaultTeamSettings = {
   defaultDeadline: '11:30',
   maxOpenTeams: 2,
-  allowReorder: true,
   keepOrganizerHistory: true,
-  keepOrdererHistory: true,
-  ordererHistoryLimit: 5,
   organizerHistoryLimit: 10
 }
 
