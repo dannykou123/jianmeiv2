@@ -273,6 +273,7 @@ function onQuickOrderCreated(text) {
           @preview-ship="openPreview('ship', $event)"
           @preview-order="openOrderPreview"
           @preview-member="openMemberPreview"
+          @preview-prep="openPreview('prep', $event)"
         />
       </section>
       <section v-else-if="currentView === 'products'" class="view active" data-view="products">

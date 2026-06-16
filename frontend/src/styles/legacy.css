@@ -988,6 +988,129 @@ button {
   padding: 0 12px;
 }
 
+.order-prep-summary {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0 14px;
+  padding: 12px;
+  border: 1px solid rgba(228, 222, 210, .14);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, .12);
+}
+
+.ops-row {
+  display: grid;
+  grid-template-columns: minmax(180px, .42fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.ops-title {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.ops-title strong {
+  color: #f8efe1;
+  font-family: 'Noto Serif TC', serif;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.ops-title small {
+  width: 100%;
+  color: #b7ad9c;
+  font-size: var(--fs-info);
+}
+
+.ops-chips {
+  min-width: 0;
+  display: flex;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.ops-chip {
+  min-width: 0;
+  max-width: 170px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid rgba(228, 222, 210, .12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .045);
+  white-space: nowrap;
+}
+
+.ops-chip.vacuum {
+  border-color: rgba(121, 158, 173, .28);
+  background: rgba(121, 158, 173, .10);
+}
+
+.ops-chip b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #f8efe1;
+  font-size: 14px;
+}
+
+.ops-chip em {
+  color: #f4dfb4;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.ops-chip small {
+  color: #9f9689;
+  font-size: 11px;
+}
+
+.ops-empty {
+  margin: 0;
+  color: #b7ad9c;
+  font-size: var(--fs-info);
+}
+
+.ops-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.ops-actions button {
+  min-height: 38px;
+  white-space: nowrap;
+}
+
+.order-prep-detail {
+  max-height: 340px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  overflow: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgba(228, 222, 210, .10);
+}
+
+.order-prep-detail .prep-card {
+  background: rgba(0, 0, 0, .10);
+}
+
+.order-prep-detail .prep-card.combo header {
+  background: rgba(153, 125, 177, .14);
+}
+
+.order-prep-detail .prep-items {
+  max-height: 220px;
+  overflow: auto;
+}
+
 .undo-banner {
   display: flex;
   align-items: center;
@@ -7684,6 +7807,34 @@ button:disabled {
   .batch-bar {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .ops-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .ops-chips {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .ops-chip {
+    max-width: 100%;
+  }
+
+  .ops-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ops-actions button {
+    width: 100%;
+  }
+
+  .order-prep-detail {
+    max-height: none;
+    grid-template-columns: 1fr;
   }
 
   .orderer-page {

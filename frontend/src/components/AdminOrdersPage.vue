@@ -4,8 +4,9 @@ import { useCatalogStore } from '../stores/catalog.js'
 import { useContactsStore } from '../stores/contacts.js'
 import { useOrdersStore } from '../stores/orders.js'
 import { useUiSettingsStore } from '../stores/uiSettings.js'
+import { buildOrderPrepSummary, buildPrepTally, topPrepRows } from '../utils/prepTally.js'
 
-const emit = defineEmits(['preview-a4', 'preview-ship', 'preview-order', 'preview-member'])
+const emit = defineEmits(['preview-a4', 'preview-ship', 'preview-order', 'preview-member', 'preview-prep'])
 const catalog = useCatalogStore()
 const contacts = useContactsStore()
 const orders = useOrdersStore()
@@ -41,6 +42,7 @@ const orderEditor = ref(null)
 const memberEditor = ref(null)
 const memberEditorProductInput = ref('')
 const undoDelete = ref(null)
+const prepPanelOpen = ref(false)
 const editorProductInputs = reactive({})
 let undoDeleteTimer
 
@@ -81,6 +83,13 @@ const filteredOrderIds = computed(() => filteredOrders.value.map((order) => orde
 const filteredShipOrderIds = computed(() => filteredOrders.value
   .filter((order) => order.status === 'accepted' || order.status === 'shipped')
   .map((order) => order.id))
+const filteredPrepTally = computed(() => buildPrepTally(filteredOrders.value, catalog.products))
+const filteredPrepTopRows = computed(() => topPrepRows(filteredPrepTally.value, 8))
+const filteredPrepGroups = computed(() => [
+  { key: 'normal', title: '一般滷味', rows: filteredPrepTally.value.normal, qty: filteredPrepTally.value.normalQty },
+  { key: 'vacuum', title: '真空包裝', rows: filteredPrepTally.value.vacuum, qty: filteredPrepTally.value.vacuumQty },
+  { key: 'combo', title: '組合/其他', rows: filteredPrepTally.value.combo, qty: filteredPrepTally.value.comboQty }
+].filter((group) => group.rows.length))
 const ordersPerPage = computed(() => Number(uiSettings.display.ordersPerPage) || 20)
 const displayedOrders = computed(() => filteredOrders.value.slice(0, ordersPerPage.value))
 const hiddenOrderCount = computed(() => Math.max(0, filteredOrders.value.length - displayedOrders.value.length))
@@ -95,7 +104,7 @@ const productMetaByName = computed(() => new Map(
   Object.entries(catalog.products).flatMap(([type, list]) => list.map((item) => [item.name, { item, type }]))
 ))
 const prepSummaries = computed(() => Object.fromEntries(
-  orders.orders.map((order) => [order.id, buildOrderPrepSummary(order)])
+  orders.orders.map((order) => [order.id, buildOrderPrepSummary(order, catalog.products)])
 ))
 const productOptions = computed(() => catalog.allProducts.map((item) => ({
   name: item.name,
@@ -323,6 +332,14 @@ function previewFilteredA4() {
   emit('preview-a4', { orderIds: filteredOrderIds.value, scope: 'filtered' })
 }
 
+function previewFilteredPrep() {
+  if (!filteredPrepTally.value.totalRows) {
+    message.value = '目前篩選結果沒有可列印的備料品項'
+    return
+  }
+  emit('preview-prep', { orderIds: filteredOrderIds.value, scope: 'filtered' })
+}
+
 function toggleExpanded(orderId) {
   const nextId = expandedId.value === orderId ? '' : orderId
   expandedId.value = nextId
@@ -335,44 +352,6 @@ function detailTab(orderId) {
 
 function setDetailTab(orderId, tab) {
   detailTabs[orderId] = tab
-}
-
-function buildOrderPrepSummary(order) {
-  const normalRows = new Map()
-  const vacuumRows = new Map()
-  const comboRows = new Map()
-  let comboCount = 0
-
-  const addSingle = (name, qty) => {
-    const meta = productMetaByName.value.get(name)
-    const rows = meta?.type === 'vacuum' ? vacuumRows : normalRows
-    rows.set(name, (rows.get(name) || 0) + qty)
-  }
-
-  const addItem = (name, qty) => {
-    const amount = Math.max(0, Number(qty) || 0)
-    if (!amount) return
-    const meta = productMetaByName.value.get(name)
-    if (meta?.item?.parts?.length) {
-      comboCount += amount
-      comboRows.set(name, (comboRows.get(name) || 0) + amount)
-      meta.item.parts.forEach(([partName, partQty]) => addItem(partName, amount * (Number(partQty) || 1)))
-      return
-    }
-    addSingle(name, amount)
-  }
-
-  order.members.forEach((member) => {
-    member.items.forEach(([name, qty]) => addItem(name, qty))
-  })
-
-  const sortRows = (rows) => [...rows.entries()].sort((a, b) => b[1] - a[1])
-
-  return {
-    rows: [...sortRows(normalRows), ...sortRows(vacuumRows)],
-    comboRows: [...comboRows.entries()].sort((a, b) => b[1] - a[1]),
-    comboCount
-  }
 }
 
 function prepSummary(order) {
@@ -928,6 +907,53 @@ onUnmounted(() => clearTimeout(undoDeleteTimer))
       <button type="button" @click="setFilteredStatus('shipped')">批次出貨</button>
       <button type="button" @click="expandedId = ''">全部收合</button>
     </div>
+
+    <section class="order-prep-summary" :class="{ open: prepPanelOpen }" aria-labelledby="orderPrepTitle">
+      <div class="ops-row">
+        <div class="ops-title">
+          <strong id="orderPrepTitle">備料總覽</strong>
+          <span class="count-pill">共 {{ filteredPrepTally.totalRows }} 項</span>
+          <small>依目前篩選 · {{ filteredOrders.length }} 筆訂單 · {{ filteredPrepTally.totalQty }} 份</small>
+        </div>
+
+        <div v-if="filteredPrepTopRows.length" class="ops-chips" aria-label="主要備料品項">
+          <span
+            v-for="row in filteredPrepTopRows"
+            :key="`${row.type}-${row.name}`"
+            class="ops-chip"
+            :class="row.type"
+            :title="`${row.label}：${row.name} x${row.qty}`"
+          >
+            <b>{{ row.name }}</b>
+            <em>x{{ row.qty }}</em>
+            <small>{{ row.label }}</small>
+          </span>
+        </div>
+        <p v-else class="ops-empty">目前篩選沒有可備料的品項。</p>
+
+        <div class="ops-actions">
+          <button type="button" class="ghost-btn" :disabled="!filteredPrepTally.totalRows" @click="prepPanelOpen = !prepPanelOpen">
+            {{ prepPanelOpen ? '收合總覽' : '展開總覽' }}
+          </button>
+          <button type="button" class="primary-btn" :disabled="!filteredPrepTally.totalRows" @click="previewFilteredPrep">列印備料單</button>
+        </div>
+      </div>
+
+      <div v-if="prepPanelOpen" class="order-prep-detail">
+        <article v-for="group in filteredPrepGroups" :key="group.key" class="prep-card" :class="group.key">
+          <header>
+            <strong>{{ group.title }}</strong>
+            <span>{{ group.rows.length }} 項 · {{ group.qty }} 份</span>
+          </header>
+          <div class="prep-items">
+            <div v-for="[name, qty] in group.rows" :key="name" class="prep-item">
+              <b>{{ qty }}</b>
+              <span>{{ name }}</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
 
     <p v-if="message" class="status-line">{{ message }}</p>
     <div v-if="undoDelete" class="undo-banner">

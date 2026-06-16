@@ -6,6 +6,7 @@ import { useCatalogStore } from '../stores/catalog.js'
 import { useOrdersStore } from '../stores/orders.js'
 import { usePrintSettingsStore } from '../stores/printSettings.js'
 import { buildPrepPages } from '../print/legacyTemplates.js'
+import { buildPrepTally } from '../utils/prepTally.js'
 
 const emit = defineEmits(['preview'])
 const router = useRouter()
@@ -70,51 +71,10 @@ const filteredOrders = computed(() => {
   })
 })
 
-const productMeta = computed(() => {
-  const byName = new Map()
-  Object.entries(catalog.products).forEach(([type, list]) => {
-    list.forEach((item) => byName.set(item.name, { ...item, type }))
-  })
-  return byName
-})
-
-function addQty(map, name, qty) {
-  map.set(name, (map.get(name) || 0) + qty)
-}
-
-const tally = computed(() => {
-  const normal = new Map()
-  const vacuum = new Map()
-  const combo = new Map()
-
-  filteredOrders.value.forEach((order) => {
-    order.members.forEach((member) => {
-      member.items.forEach(([name, qty]) => {
-        const product = productMeta.value.get(name)
-        if (product?.parts?.length) {
-          addQty(combo, name, qty)
-          product.parts.forEach(([partName, partQty]) => {
-            const part = productMeta.value.get(partName)
-            addQty(part?.type === 'vacuum' ? vacuum : normal, partName, partQty * qty)
-          })
-          return
-        }
-        addQty(product?.type === 'vacuum' ? vacuum : normal, name, qty)
-      })
-    })
-  })
-
-  const rows = (map) => [...map.entries()].sort((a, b) => b[1] - a[1])
-  return {
-    normal: rows(normal),
-    vacuum: rows(vacuum),
-    combo: rows(combo)
-  }
-})
-
-const totalRows = computed(() => tally.value.normal.length + tally.value.vacuum.length)
-const totalQty = computed(() => [...tally.value.normal, ...tally.value.vacuum].reduce((sum, [, qty]) => sum + qty, 0))
-const comboQty = computed(() => tally.value.combo.reduce((sum, [, qty]) => sum + qty, 0))
+const tally = computed(() => buildPrepTally(filteredOrders.value, catalog.products))
+const totalRows = computed(() => tally.value.totalRows)
+const totalQty = computed(() => tally.value.totalQty)
+const comboQty = computed(() => tally.value.comboQty)
 const rangeLabel = computed(() => dateRange.value.label)
 const hasDateFilter = computed(() => range.value !== 'today' || customStart.value || customEnd.value)
 
