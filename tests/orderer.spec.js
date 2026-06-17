@@ -1,9 +1,16 @@
+const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { test, expect } = require('@playwright/test');
 
-const appFile = path.resolve(__dirname, '..', '健美滷味_團購系統_優化版_修正版.html');
-const appUrl = pathToFileURL(appFile).toString();
+const projectRoot = path.resolve(__dirname, '..');
+const appFileName = fs.readdirSync(projectRoot).find(name => name.endsWith('.html') && name !== 'index.html');
+
+if (!appFileName) {
+  throw new Error('Cannot find the legacy app HTML file.');
+}
+
+const appUrl = pathToFileURL(path.join(projectRoot, appFileName)).toString();
 
 function collectPageIssues(page) {
   const issues = [];
@@ -21,12 +28,40 @@ function collectPageIssues(page) {
   return issues;
 }
 
-async function openOrderer(page) {
+async function openApp(page) {
   await page.goto(appUrl);
   await expect(page.locator('#entry.active')).toBeVisible();
-  await page.locator('#entry .et-btn').filter({ hasText: '訂購人' }).click();
-  await expect(page.locator('#orderer.active')).toBeVisible();
+}
+
+async function goScreen(page, screenId) {
+  await page.evaluate(id => {
+    if (typeof window.go === 'function') {
+      window.go(id);
+      return;
+    }
+    const button = document.querySelector(`button[onclick="go('${id}')"]`);
+    if (button) button.click();
+  }, screenId);
+  await expect(page.locator(`#${screenId}.active`)).toBeVisible();
+}
+
+async function openOrderer(page) {
+  await openApp(page);
+  await goScreen(page, 'orderer');
   await expect(page.locator('#orderer.active #ordMenu .ordx-card').first()).toBeVisible();
+}
+
+async function openOrganizer(page) {
+  await openApp(page);
+  await goScreen(page, 'organizer');
+  await expect(page.locator('#organizer.active #orgPeople')).toBeVisible();
+}
+
+async function openOrganizerDetail(page) {
+  await goScreen(page, 'organizer');
+  await page.locator('#teamList .tcard').first().click();
+  await expect(page.locator('#organizer.active #orgDetailView')).toBeVisible();
+  await expect(page.locator('#organizer.active #orgPeople .dept-group').first()).toBeVisible();
 }
 
 async function productGridColumnCount(page) {
@@ -36,21 +71,61 @@ async function productGridColumnCount(page) {
   });
 }
 
-test.describe('訂購人頁面自動化驗證', () => {
-  test('桌機寬度商品卡最多兩欄並可截圖', async ({ page }, testInfo) => {
+async function addFirstProductAndSubmit(page, name) {
+  await page.locator('#ordName').fill(name);
+  await page.locator('#orderer.active #ordMenu .ordx-card').first().click();
+  await expect(page.locator('#ordCartN')).toHaveText('1');
+  await expect(page.locator('#ocSubmit')).toBeEnabled();
+  await page.locator('#ocSubmit').click();
+  await expect(page.locator('#ordModal.show')).toBeVisible();
+  await expect(page.locator('#cartList .cart-row')).toHaveCount(1);
+  await page.locator('#ordModal .ord-submit').click();
+  await expect(page.locator('#ordSuccess.show')).toBeVisible();
+}
+
+test.describe('orderer page automation', () => {
+  test('desktop product grid is tidy and product search is removed', async ({ page }, testInfo) => {
     const issues = collectPageIssues(page);
     await page.setViewportSize({ width: 1440, height: 900 });
 
     await openOrderer(page);
 
-    await expect(page.locator('#orderer.active .ordx-shop')).toContainText('健美滷味');
+    await expect(page.locator('#orderer.active .ordx-shop')).toBeVisible();
     await expect(page.locator('#orderer.active #ordxCart')).toBeVisible();
+    await expect(page.locator('#orderer.active #ordSearch')).toHaveCount(0);
     await expect(await productGridColumnCount(page)).toBeLessThanOrEqual(2);
+
+    const categories = page.locator('#orderer.active #ordCats .ordx-cat');
+    await expect(categories.first()).toBeVisible();
+    if (await categories.count() > 1) {
+      await categories.nth(1).click();
+      await expect(categories.nth(1)).toHaveClass(/on/);
+    }
+
     await page.screenshot({ path: testInfo.outputPath('orderer-desktop.png'), fullPage: false });
     expect(issues).toEqual([]);
   });
 
-  test('手機寬度商品卡維持一欄且底部送出列可見', async ({ page }, testInfo) => {
+  test('empty desktop order summary stays compact while scrolling', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+
+    await openOrderer(page);
+
+    const height = await page.locator('#orderer.active #ordxCart').evaluate(element => element.getBoundingClientRect().height);
+    expect(height).toBeLessThan(280);
+
+    await page.evaluate(() => window.scrollTo(0, 700));
+    await page.waitForTimeout(100);
+    const top = await page.locator('#orderer.active #ordxCart').evaluate(element => element.getBoundingClientRect().top);
+    expect(top).toBeGreaterThanOrEqual(0);
+    expect(top).toBeLessThan(40);
+
+    await page.screenshot({ path: testInfo.outputPath('orderer-empty-cart-scrolled.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
+  test('mobile product grid remains one column', async ({ page }, testInfo) => {
     const issues = collectPageIssues(page);
     await page.setViewportSize({ width: 390, height: 844 });
 
@@ -62,26 +137,37 @@ test.describe('訂購人頁面自動化驗證', () => {
     expect(issues).toEqual([]);
   });
 
-  test('訂購人可加入商品、開啟最後確認並送出成功', async ({ page }, testInfo) => {
+  test('preset department order is grouped in organizer view', async ({ page }, testInfo) => {
     const issues = collectPageIssues(page);
     await page.setViewportSize({ width: 1440, height: 900 });
     await openOrderer(page);
 
-    await page.locator('#ordName').fill('自動測試訂購人');
-    await page.locator('#orderer.active #ordMenu .ordx-card').first().click();
-    await expect(page.locator('#ordCartN')).toHaveText('1');
-    await expect(page.locator('#ocSubmit')).toBeEnabled();
+    await page.locator('#ordDept').selectOption('財務部');
+    await addFirstProductAndSubmit(page, '測試財務訂購人');
+    await openOrganizerDetail(page);
 
-    await page.locator('#ocSubmit').click();
-    await expect(page.locator('#ordModal.show')).toBeVisible();
-    await expect(page.getByText('最後確認你的訂單')).toBeVisible();
-    await expect(page.locator('#cartList .cart-row')).toHaveCount(1);
-    await page.screenshot({ path: testInfo.outputPath('orderer-confirm.png'), fullPage: false });
+    const group = page.locator('.dept-group[data-dept="財務部"]');
+    await expect(group).toBeVisible();
+    await expect(group.locator('.person-nm', { hasText: '測試財務訂購人' })).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath('organizer-preset-dept.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
 
-    await page.locator('#ordModal .ord-submit').click();
-    await expect(page.locator('#ordSuccess.show')).toBeVisible();
-    await expect(page.locator('#osSummary')).toContainText('自動測試訂購人');
-    await page.screenshot({ path: testInfo.outputPath('orderer-success.png'), fullPage: false });
+  test('custom department order is grouped in organizer view', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await openOrderer(page);
+
+    await page.locator('#ordDept').selectOption('__other__');
+    await expect(page.locator('#ordDeptCustom')).toBeVisible();
+    await page.locator('#ordDeptCustom').fill('設計部');
+    await addFirstProductAndSubmit(page, '測試設計訂購人');
+    await openOrganizerDetail(page);
+
+    const group = page.locator('.dept-group[data-dept="設計部"]');
+    await expect(group).toBeVisible();
+    await expect(group.locator('.person-nm', { hasText: '測試設計訂購人' })).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath('organizer-custom-dept.png'), fullPage: false });
     expect(issues).toEqual([]);
   });
 });

@@ -1238,10 +1238,11 @@
   .seg-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
   .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
   .fld-l{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--sub)}
-  .fld-l input,.fld-l select{background:var(--bg-1);border:1px solid var(--edge);color:var(--ink);border-radius:10px;padding:11px 13px;font-size:15px;font-family:'Noto Sans TC';transition:.2s}
+  .fld-l input,.fld-l select,.fld-l textarea{background:var(--bg-1);border:1px solid var(--edge);color:var(--ink);border-radius:10px;padding:11px 13px;font-size:15px;font-family:'Noto Sans TC';transition:.2s;box-sizing:border-box}
+  .fld-l textarea{resize:vertical;line-height:1.5}
   .fld-bare{display:block;width:100%;box-sizing:border-box;background:var(--bg-1);border:1px solid var(--edge);color:var(--ink);border-radius:11px;padding:13px 14px;font-size:15px;font-family:'Noto Sans TC';transition:.2s}
   .fld-bare:focus{outline:none;border-color:var(--rose)}
-  .fld-l input:focus,.fld-l select:focus{outline:none;border-color:var(--rose)}
+  .fld-l input:focus,.fld-l select:focus,.fld-l textarea:focus{outline:none;border-color:var(--rose)}
   .form-actions{display:flex;align-items:center;gap:14px;margin-top:18px;flex-wrap:wrap}
   .conn-status{font-size:14px;font-weight:600}
   .conn-status.ok{color:var(--green)}.conn-status.fail{color:var(--danger)}.conn-status.testing{color:var(--gold)}
@@ -2733,7 +2734,7 @@
   .team-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(148,160,138,.6);animation:teamPulse 1.8s infinite}
   @keyframes teamPulse{0%{box-shadow:0 0 0 0 rgba(148,160,138,.5)}70%{box-shadow:0 0 0 8px rgba(148,160,138,0)}100%{box-shadow:0 0 0 0 rgba(148,160,138,0)}}
   .team-id{font-family:'DM Mono',monospace;font-size:14px;color:var(--gold);letter-spacing:1px}
-  .team-note{margin-top:0}
+  .team-note,.team-depts{margin-top:0}
   .team-note.open{margin-top:12px}
   .tn-edit-h{font-size:12.5px;color:var(--sub);font-weight:600;margin-bottom:6px}
   .team-note-head{display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;padding:0;cursor:pointer;font-family:'Noto Sans TC';text-align:left}
@@ -2747,6 +2748,20 @@
   .team-note.open .team-note-body{max-height:240px}
   .team-note-body textarea{width:100%;margin-top:10px;background:var(--bg-0);border:1px solid var(--edge-hi);border-radius:11px;padding:9px 11px;color:var(--ink);font-family:'Noto Sans TC';font-size:13.5px;resize:vertical;box-sizing:border-box}
   .team-note-body textarea:focus{outline:none;border-color:var(--rose)}
+  .team-depts{display:none;border-top:1px solid var(--edge);padding:14px 18px 8px}
+  .team-depts.open{display:block}
+  .team-depts-body{display:flex;flex-direction:column;gap:10px}
+  .td-edit-h{font-size:13px;font-weight:800;color:var(--ink)}
+  .td-edit-sub{font-size:12px;color:var(--mute);line-height:1.5}
+  .team-dept-tags{display:flex;flex-wrap:wrap;gap:7px}
+  .team-dept-tag{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--edge-hi);border-radius:999px;background:var(--bg-1);color:var(--ink);padding:6px 9px;font-size:12.5px;font-weight:700}
+  .team-dept-tag button{border:none;background:none;color:var(--mute);font-size:15px;line-height:1;cursor:pointer;padding:0}
+  .team-dept-tag button:hover{color:var(--danger)}
+  .team-dept-add{display:flex;gap:8px}
+  .team-dept-add input{flex:1;min-width:0;background:var(--bg-0);border:1px solid var(--edge-hi);border-radius:10px;padding:9px 11px;color:var(--ink);font-family:'Noto Sans TC';font-size:13.5px}
+  .team-dept-add input:focus{outline:none;border-color:var(--rose)}
+  .team-dept-add button{border:1px solid var(--edge-hi);border-radius:10px;background:var(--bg-1);color:var(--ink);font-family:'Noto Sans TC';font-size:13px;font-weight:800;padding:0 13px;cursor:pointer}
+  .team-dept-add button:hover{border-color:var(--rose);color:var(--rose)}
   .pay-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;margin-bottom:8px}
   .pay-lbl{color:var(--mute);font-weight:600;flex-shrink:0}
   .pay-ppl{color:var(--sub);font-size:13px;white-space:nowrap}
@@ -3260,6 +3275,12 @@
   .org-tabs .seg-btn{flex:1;justify-content:center}
   /* 面板 */
   .org-panel{padding:16px 20px 6px}
+  .dept-groups{display:flex;flex-direction:column;gap:14px}
+  .dept-group{border:1px solid color-mix(in srgb,var(--edge-hi) 72%,transparent);border-radius:16px;background:color-mix(in srgb,var(--card) 78%,transparent);padding:10px 10px 12px}
+  .dept-group-h{display:flex;align-items:center;gap:8px;padding:2px 2px 9px;border-bottom:1px solid color-mix(in srgb,var(--edge) 70%,transparent);color:var(--ink);font-size:14px;font-weight:900}
+  .dept-group-h .dg-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dept-group-h .dg-meta{margin-left:auto;color:var(--sub);font-size:12px;font-weight:700;white-space:nowrap}
+  .dept-group .person-card{margin-top:10px}
   /* 依訂購人：每人一張卡 */
   .person-card{background:var(--card);border:1px solid var(--edge);border-radius:16px;padding:11px 13px;margin-top:10px}
   .person-h{display:flex;align-items:center;gap:10px;cursor:pointer}
@@ -4633,8 +4654,12 @@
   .ordx-shop{font-family:'Noto Serif TC',serif;font-weight:900;font-size:23px;color:var(--ink)}
   .ordx-sub{font-size:13px;color:var(--sub);margin-top:3px}
   .ordx-me{display:flex;gap:10px;margin-top:13px}
-  .ordx-me input{flex:1;min-width:0;background:var(--card);border:1px solid var(--edge-hi);border-radius:12px;padding:11px 14px;color:var(--ink);font-size:15px;font-family:'Noto Sans TC';transition:border-color .15s}
-  .ordx-me input:focus{outline:none;border-color:var(--rose)}
+  .ordx-me input,.ordx-me select{flex:1;min-width:0;background:var(--card);border:1px solid var(--edge-hi);border-radius:12px;padding:11px 14px;color:var(--ink);font-size:15px;font-family:'Noto Sans TC';transition:border-color .15s;box-sizing:border-box}
+  .ordx-me input:focus,.ordx-me select:focus{outline:none;border-color:var(--rose)}
+  .ord-dept-wrap{flex:1;min-width:0;display:flex;gap:8px}
+  .ord-dept-wrap select{flex:1}
+  .ord-dept-wrap .ord-dept-custom{flex:1.05}
+  .ord-dept-custom[hidden]{display:none!important}
   .ordx-body{display:grid;grid-template-columns:1fr;gap:18px;margin-top:8px}
   .ordx-pick{min-width:0}
   .ordx-cats{display:flex;gap:8px;overflow-x:auto;padding:8px 2px 12px;position:sticky;top:0;z-index:6;background:linear-gradient(180deg,var(--bg-0) 72%,transparent);scrollbar-width:none}
@@ -4674,13 +4699,15 @@
   .ord-cart-mini .ocm-step b{min-width:16px;text-align:center;font-size:13px;color:var(--ink)}
   .ord-cart-mini .ocm-sub{font-size:13px;font-weight:700;color:var(--sub);font-family:'DM Mono',monospace;min-width:46px;text-align:right}
   @media(min-width:768px){
-    .ordx-body{grid-template-columns:1fr minmax(280px,330px)}
-    .ordx-cart{display:flex;flex-direction:column;gap:12px;position:sticky;top:10px;background:var(--card);border:1px solid var(--edge);border-radius:16px;padding:16px;max-height:calc(100dvh - 24px)}
+    .ordx-body{grid-template-columns:1fr minmax(280px,330px);align-items:start}
+    .ordx-cart{display:flex;flex-direction:column;align-self:start;gap:12px;position:fixed;top:10px;right:max(16px,calc((100vw - 1180px)/2 + 16px));width:min(330px,calc(100vw - 32px));box-sizing:border-box;z-index:8;background:var(--card);border:1px solid var(--edge);border-radius:16px;padding:16px;height:auto;max-height:none}
     .ordx-cart-h{display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px;color:var(--ink)}
     .ordx-cart-h .ico{width:19px;height:19px;color:var(--rose)}
     .ordx-cart-n{margin-left:auto;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:var(--rose);color:var(--pill-ink);font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center}
-    .ordx-cart .ord-cart-mini{flex:1;overflow-y:auto;min-height:60px}
-    .ordx-cart-empty{color:var(--mute);font-size:13.5px;text-align:center;padding:20px 0}
+    .ordx-cart .ord-cart-mini{display:none;overflow-y:auto;min-height:0;max-height:calc(100dvh - 230px)}
+    #orderer.has-items .ordx-cart{max-height:calc(100dvh - 24px)}
+    #orderer.has-items .ordx-cart .ord-cart-mini{display:block;flex:1;min-height:60px}
+    .ordx-cart-empty{color:var(--mute);font-size:13.5px;text-align:center;padding:8px 0 2px}
     .ordx-cart-foot{border-top:1px solid var(--edge);padding-top:13px;display:flex;flex-direction:column;gap:11px}
     .ordx-total{display:flex;justify-content:space-between;align-items:baseline;font-size:13.5px;color:var(--sub)}
     .ordx-total b{font-size:23px;color:var(--ink);font-family:'DM Mono',monospace}
@@ -4695,6 +4722,7 @@
     #orderer.show-hist .ordx-pick{display:none}
   }
   @media(max-width:560px){#orderer .ordx-grid{grid-template-columns:1fr}}
+  @media(max-width:640px){.ordx-me{flex-direction:column}.ord-dept-wrap{width:100%}}
   /* ════════════════ 高級底部導覽列 .pnav（訂購人<768＝手機 / 團購人<1080＝iPad＋手機）════════════════ */
   .pnav{position:fixed;left:0;right:0;bottom:0;z-index:60;display:none;align-items:stretch;gap:6px;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--bg-1) 84%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.35);backdrop-filter:blur(22px) saturate(1.35);border-top:1px solid var(--glass-hi);box-shadow:0 -8px 30px rgba(0,0,0,.22)}
   .pnav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 4px;border:none;background:none;color:var(--mute);font-size:11px;font-weight:700;font-family:'Noto Sans TC';cursor:pointer;border-radius:12px;transition:color .15s;position:relative}
@@ -5687,13 +5715,17 @@
       <div class="ord-host-note" id="ordHostNote" hidden><svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span class="hn-text"></span></div>
       <div class="ordx-me">
         <input type="text" id="ordName" placeholder="你的名字（必填）" autocomplete="off" aria-label="你的名字">
-        <input type="text" id="ordDept" placeholder="部門（選填）" autocomplete="off" aria-label="部門">
+        <div class="ord-dept-wrap">
+          <select id="ordDept" aria-label="部門" onchange="handleOrdDeptChange()">
+            <option value="">單位（選填）</option>
+          </select>
+          <input type="text" id="ordDeptCustom" class="ord-dept-custom" placeholder="輸入單位" autocomplete="off" aria-label="自訂單位" hidden>
+        </div>
       </div>
     </header>
 
     <div class="ordx-body">
       <div class="ordx-pick">
-        <div class="ordx-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="ordSearch" type="search" placeholder="搜尋商品…" aria-label="搜尋商品" oninput="renderOrdMenu()"></div>
         <div class="ordx-cats" id="ordCats"><!-- 分類篩選 chips：JS 生成 --></div>
         <div class="ordx-grid" id="ordMenu"><!-- 商品卡片：JS 生成 --></div>
       </div>
@@ -5818,12 +5850,26 @@
           <button id="teamPaySetBtn" onclick="openPaySetup()">收款</button>
           <button id="remindUnpaidBtn" onclick="remindUnpaid()">催款<span class="act-badge" id="unpaidBadge" hidden></span></button>
           <button onclick="toggleTeamNote()">備註</button>
+          <button onclick="toggleTeamDepts()">單位</button>
           <button onclick="printTeamA4()">列印</button>
         </div>
         <div class="team-note" id="teamNoteWrap">
           <div class="team-note-body">
             <div class="tn-edit-h">給訂購人看的備註</div>
             <textarea id="teamHostNote" rows="3" placeholder="例：滿 $1500 免運、費用請匯款或現金給我…" oninput="saveHostNote()"></textarea>
+          </div>
+        </div>
+        <div class="team-depts" id="teamDeptWrap">
+          <div class="team-depts-body">
+            <div>
+              <div class="td-edit-h">訂購人單位</div>
+              <div class="td-edit-sub">訂購人會先看到這些單位；若沒有合適選項，仍可選「其他」自行輸入。</div>
+            </div>
+            <div class="team-dept-tags" id="teamDeptTags"></div>
+            <div class="team-dept-add">
+              <input type="text" id="teamDeptInput" placeholder="新增單位，例如：設計部" onkeydown="if(event.key==='Enter'){event.preventDefault();addTeamDept();}">
+              <button type="button" onclick="addTeamDept()">新增</button>
+            </div>
           </div>
         </div>
       </div>
@@ -5869,6 +5915,8 @@
           <input type="date" id="ntStart"></label>
         <label class="fld-l" style="margin-top:12px">收單截止
           <input type="datetime-local" id="ntDeadline"></label>
+        <label class="fld-l" style="margin-top:12px">訂購人單位
+          <textarea id="ntDeptOptions" rows="2" placeholder="行政部、財務部、業務部、人資、總務、工程"></textarea></label>
         <div style="display:flex;gap:10px;margin-top:12px">
           <label class="fld-l" style="flex:1;margin:0">預計出貨日<span style="font-weight:400;color:var(--sub)">（配送）</span>
             <input type="date" id="ntDeliver"></label>
@@ -6408,6 +6456,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if(id==='admin' && typeof buildDashboard==='function'){ try{ buildDashboard(); }catch(e){} }
     if(typeof refreshChatBadges==='function'){ try{ refreshChatBadges(); }catch(e){} }
     if(id==='orderer' && typeof renderHostNote==='function'){ try{ renderHostNote(); }catch(e){} }
+    if(id==='orderer' && typeof renderOrdererDeptOptions==='function'){ try{ renderOrdererDeptOptions(); }catch(e){} }
     try{ if(window.scrollTo) window.scrollTo(0,0); }catch(e){}
   }
   const navViews = ['dashboard','calendar','reports','inventory','contacts','map','products','prepboard'];
@@ -9558,10 +9607,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const ordItems=Object.keys(cart).map(id=>{ const it=findItem(id); return it?[it.nm, cart[id], it.price]:null; }).filter(Boolean);
     try{
       if(typeof ORDERS!=='undefined' && nm && ordItems.length){
-        const dept=(document.getElementById('ordDept')?.value||'').trim();
+        const dept=(typeof getOrdererDept==='function')?getOrdererDept():(document.getElementById('ordDept')?.value||'').trim();
         ORDERS.push({ name:nm, dept, paid:false, items:ordItems, note:noteVal, self:true });
-        const _t=(typeof TEAMS!=='undefined')?TEAMS.find(x=>x.id===currentTeamId):null;
-        if(_t){ _t.orders=(_t.orders||0)+1; _t.total=(_t.total||0)+total; }
+        const _t=(typeof activeOrdererTeam==='function')?activeOrdererTeam():((typeof TEAMS!=='undefined')?TEAMS.find(x=>x.id===currentTeamId):null);
+        if(_t){
+          _t.orders=(_t.orders||0)+1; _t.total=(_t.total||0)+total;
+          if(dept) _t.deptOptions=uniqueDeptOptions([...teamDeptOptions(_t),dept]);
+        }
         if(typeof renderPeople==='function') renderPeople();
         if(typeof updateOrgStats==='function') updateOrgStats();
         if(typeof renderTeamList==='function') renderTeamList();
@@ -9684,7 +9736,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   function renderPeople(){
     const pending = ROSTER.filter(n=>!ORDERS.some(o=>o.name===n));
-    const cards = ORDERS.map((o,i)=>`
+    const personCard=(o,i)=>`
       <div class="person-card${o.paid?' is-paid':''}">
         <div class="person-h" onclick="togglePerson(this)">
           <div class="person-av${o.paid?' paid':''}">${cdEsc((o.name||'?').charAt(0))}</div>
@@ -9704,12 +9756,27 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
             <button class="person-del-btn" onclick="delOrder(${i})"><svg class="ico" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>移除</button>
           </div>
         </div>
-      </div>`).join('');
+      </div>`;
+    const deptGroups=[];
+    const deptMap=new Map();
+    ORDERS.forEach((o,i)=>{
+      const key=cleanDeptName(o.dept)||'未填單位';
+      if(!deptMap.has(key)){ const g={dept:key, people:0, total:0, cards:[]}; deptMap.set(key,g); deptGroups.push(g); }
+      const g=deptMap.get(key);
+      g.people++;
+      g.total+=orderTotal(o);
+      g.cards.push(personCard(o,i));
+    });
+    const cards = deptGroups.map(g=>`
+      <section class="dept-group" data-dept="${cdEsc(g.dept)}">
+        <div class="dept-group-h"><span class="dg-name">${cdEsc(g.dept)}</span><span class="dg-meta">${g.people} 人 · $${g.total.toLocaleString()}</span></div>
+        ${g.cards.join('')}
+      </section>`).join('');
     // 付款統計：人數 + 已收/未收金額
     const paidCount=ORDERS.filter(o=>o.paid).length;
     const paidAmt=ORDERS.filter(o=>o.paid).reduce((s,o)=>s+orderTotal(o),0);
     const unpaidAmt=ORDERS.filter(o=>!o.paid).reduce((s,o)=>s+orderTotal(o),0);
-    document.getElementById('orgPeople').innerHTML = cards;
+    document.getElementById('orgPeople').innerHTML = cards ? `<div class="dept-groups">${cards}</div>` : '';
     const ovp=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
     ovp('ovPaidN',paidCount); ovp('ovTotalN',ORDERS.length);
     ovp('ovRecv','$'+paidAmt.toLocaleString()); ovp('ovUnrecv','$'+unpaidAmt.toLocaleString());
@@ -9921,6 +9988,96 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   window.teamStatus=teamStatus;
   let currentTeamId=null;
+  const DEFAULT_DEPT_OPTIONS=['行政部','財務部','業務部','人資','總務','工程'];
+  const DEPT_OTHER='__other__';
+  function cleanDeptName(v){ return String(v||'').trim().replace(/\s+/g,' '); }
+  function deptOptionListFromText(v){
+    return String(v||'').split(/[,\n、，]+/).map(cleanDeptName).filter(Boolean);
+  }
+  function uniqueDeptOptions(list){
+    const seen=new Set();
+    return (list||[]).map(cleanDeptName).filter(Boolean).filter(function(v){
+      if(seen.has(v)) return false;
+      seen.add(v);
+      return true;
+    });
+  }
+  function activeOrdererTeam(){
+    try{ return (typeof TEAMS!=='undefined')?(TEAMS.find(x=>x.id===currentTeamId)||TEAMS[0]||null):null; }catch(e){ return null; }
+  }
+  function teamDeptOptions(t){
+    const orderDepts=[];
+    try{ (typeof ORDERS!=='undefined'?ORDERS:[]).forEach(o=>{ if(o&&o.dept) orderDepts.push(o.dept); }); }catch(e){}
+    if(t){
+      const base=Array.isArray(t.deptOptions)&&t.deptOptions.length?t.deptOptions:DEFAULT_DEPT_OPTIONS;
+      t.deptOptions=uniqueDeptOptions([...base,...orderDepts]);
+      return t.deptOptions;
+    }
+    return uniqueDeptOptions([...DEFAULT_DEPT_OPTIONS,...orderDepts]);
+  }
+  function renderOrdererDeptOptions(){
+    const sel=document.getElementById('ordDept'); if(!sel) return;
+    const custom=document.getElementById('ordDeptCustom');
+    const prev=sel.value;
+    const opts=teamDeptOptions(activeOrdererTeam());
+    sel.innerHTML='<option value="">單位（選填）</option>'
+      +opts.map(d=>`<option value="${cdEsc(d)}">${cdEsc(d)}</option>`).join('')
+      +`<option value="${DEPT_OTHER}">其他，自行輸入</option>`;
+    if(prev===DEPT_OTHER){ sel.value=DEPT_OTHER; }
+    else if(prev && opts.includes(prev)){ sel.value=prev; }
+    else { sel.value=''; }
+    if(custom && prev!==DEPT_OTHER) custom.value='';
+    handleOrdDeptChange();
+  }
+  function handleOrdDeptChange(){
+    const sel=document.getElementById('ordDept');
+    const custom=document.getElementById('ordDeptCustom');
+    if(!sel||!custom) return;
+    const isOther=sel.value===DEPT_OTHER;
+    custom.hidden=!isOther;
+    if(isOther) setTimeout(()=>{ try{ custom.focus(); }catch(e){} },0);
+  }
+  function getOrdererDept(){
+    const sel=document.getElementById('ordDept');
+    const custom=document.getElementById('ordDeptCustom');
+    if(!sel) return '';
+    if(sel.value===DEPT_OTHER) return cleanDeptName(custom?custom.value:'');
+    return cleanDeptName(sel.value);
+  }
+  function renderTeamDeptOptions(){
+    const t=(typeof TEAMS!=='undefined'&&currentTeamId)?TEAMS.find(x=>x.id===currentTeamId):null;
+    const box=document.getElementById('teamDeptTags'); if(!box) return;
+    const opts=teamDeptOptions(t);
+    box.innerHTML=opts.length?opts.map(d=>`<span class="team-dept-tag">${cdEsc(d)}<button type="button" aria-label="移除 ${cdEsc(d)}" onclick="removeTeamDept(decodeURIComponent('${encodeURIComponent(d)}'))">×</button></span>`).join(''):'<span class="td-edit-sub">尚未設定單位</span>';
+    if(typeof renderOrdererDeptOptions==='function') renderOrdererDeptOptions();
+  }
+  function toggleTeamDepts(){
+    const wrap=document.getElementById('teamDeptWrap'); if(!wrap) return;
+    wrap.classList.toggle('open');
+    if(wrap.classList.contains('open')) renderTeamDeptOptions();
+  }
+  function addTeamDept(){
+    const t=(typeof TEAMS!=='undefined'&&currentTeamId)?TEAMS.find(x=>x.id===currentTeamId):null; if(!t) return;
+    const input=document.getElementById('teamDeptInput');
+    const additions=deptOptionListFromText(input?input.value:'');
+    if(!additions.length){ if(input) input.focus(); return; }
+    t.deptOptions=uniqueDeptOptions([...teamDeptOptions(t),...additions]);
+    if(input) input.value='';
+    renderTeamDeptOptions();
+    toast('已新增單位');
+  }
+  function removeTeamDept(name){
+    const t=(typeof TEAMS!=='undefined'&&currentTeamId)?TEAMS.find(x=>x.id===currentTeamId):null; if(!t) return;
+    const target=cleanDeptName(name);
+    t.deptOptions=teamDeptOptions(t).filter(d=>d!==target);
+    renderTeamDeptOptions();
+    toast('已移除單位');
+  }
+  window.handleOrdDeptChange=handleOrdDeptChange;
+  window.renderOrdererDeptOptions=renderOrdererDeptOptions;
+  window.toggleTeamDepts=toggleTeamDepts;
+  window.addTeamDept=addTeamDept;
+  window.removeTeamDept=removeTeamDept;
   function fmtDeadline(dl){
     if(!dl)return '—';
     const d=new Date(dl); if(isNaN(d))return dl;
@@ -9935,6 +10092,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     try{ if(typeof renderOrdMenu==='function') renderOrdMenu(); }catch(e){}
     try{ if(typeof renderPayOptions==='function') renderPayOptions(); }catch(e){}
     try{ if(typeof renderHostNote==='function') renderHostNote(); }catch(e){}
+    try{ if(typeof renderOrdererDeptOptions==='function') renderOrdererDeptOptions(); }catch(e){}
     return true;
   }
   window.loadOrdererTeam=loadOrdererTeam;
@@ -10105,6 +10263,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if(tg){ const s=tg.querySelector('.so-t')||tg; s.textContent = t.open?'關閉團購':'開啟團購'; }
     const pz=document.getElementById('teamPauseBtn');
     if(pz){ pz.style.display = t.open?'':'none'; const s=pz.querySelector('.so-t')||pz; s.textContent = t.paused?'恢復收單':'暫停收單'; }
+    const deptWrap=document.getElementById('teamDeptWrap'); if(deptWrap) deptWrap.classList.remove('open');
+    renderTeamDeptOptions();
     renderPeople(); updateOrgStats(); setOrgView(orgView); startCountdown(t.deadline);
     if(typeof updateOrgNav==='function') updateOrgNav();
     // 填入收款設定
@@ -10197,6 +10357,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const today=toLocalDt(now).slice(0,10);
     const ns=document.getElementById('ntStart'); ns.value=today; ns.min=today;            // 開團日期不可早於今天
     const nd=document.getElementById('ntDeadline'); nd.value=today+'T18:00'; nd.min=toLocalDt(now); // 截止不可早於現在
+    const dept=document.getElementById('ntDeptOptions'); if(dept) dept.value=DEFAULT_DEPT_OPTIONS.join('、');
     document.getElementById('newTeamModal').classList.add('show');
   }
   function closeNewTeam(){ document.getElementById('newTeamModal').classList.remove('show'); }
@@ -10210,7 +10371,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if(deadline && new Date(deadline).getTime() < Date.now()-60000){ toast('收單截止不可早於現在時間',true); return; }
     const deliverAt=document.getElementById('ntDeliver')?.value||'';
     const pickupAt=document.getElementById('ntPickup')?.value||'';
-    const t={id:Math.random().toString(36).slice(2,8), name, start, deadline, deliverAt, pickupAt, open:true, orders:0, total:0, submitStatus:null};
+    const deptOptions=uniqueDeptOptions(deptOptionListFromText(document.getElementById('ntDeptOptions')?.value).length?deptOptionListFromText(document.getElementById('ntDeptOptions')?.value):DEFAULT_DEPT_OPTIONS);
+    const t={id:Math.random().toString(36).slice(2,8), name, start, deadline, deliverAt, pickupAt, deptOptions, open:true, orders:0, total:0, submitStatus:null};
     TEAMS.unshift(t);
     closeNewTeam(); renderTeamList();
     toast('已開團「'+name+'」');
