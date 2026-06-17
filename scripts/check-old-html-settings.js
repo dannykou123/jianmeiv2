@@ -149,6 +149,13 @@ assert(setPanelRule.includes('overflow:hidden'), '.set-panel should keep header/
 const setContentRule = cssRule('.set-content');
 assert(setContentRule.includes('overflow-y:auto'), '.set-content must scroll independently');
 
+assert(
+  html.includes('.ordx-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));'),
+  '.ordx-grid must cap orderer product cards at two columns'
+);
+assert(!html.includes('.ordx-grid{display:grid;grid-template-columns:repeat(auto-fill') && !html.includes('.ordx-grid{display:grid;grid-template-columns:repeat(auto-fit'), '.ordx-grid must not auto-expand into crowded multi-column rows');
+assert(html.includes('最後確認你的訂單'), 'Orderer confirmation modal must be clearly labeled as the final order review');
+
 const setCloseRule = cssRule('.set-modal-x');
 assert(setCloseRule.includes('position:relative'), '.set-modal close button must remain above modal content');
 assert(setCloseRule.includes('z-index:'), '.set-modal close button needs a z-index');
