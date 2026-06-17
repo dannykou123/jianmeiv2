@@ -1,0 +1,15 @@
+{
+  "name": "jianmeiv2",
+  "version": "0.1.0",
+  "private": true,
+  "description": "健美滷味團購系統自動化驗證",
+  "scripts": {
+    "test:ui:install": "playwright install chromium",
+    "test:ui": "playwright test",
+    "test:ui:headed": "playwright test --headed",
+    "test:ui:screenshots": "playwright test --project=chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.0"
+  }
+}

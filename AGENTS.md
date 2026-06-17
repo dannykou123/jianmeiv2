@@ -361,6 +361,29 @@ docker compose up -d
 - 地圖篩選、起點設定、站點顯示。
 - 出貨單、備料單、備貨清單、A4 訂單表預覽。
 
+### Playwright 自動化瀏覽器測試
+
+本專案已將 Playwright 作為正式的瀏覽器自動化與截圖驗證方案。修改訂購人頁面或其他可由瀏覽器驗證的 UI 流程時，優先執行：
+
+```powershell
+npm.cmd run test:ui
+```
+
+第一次建立環境或 Playwright 提示缺少瀏覽器時，先執行：
+
+```powershell
+npm.cmd install
+npm.cmd run test:ui:install
+```
+
+需要觀察實際操作過程時可執行：
+
+```powershell
+npm.cmd run test:ui:headed
+```
+
+目前 Playwright 覆蓋訂購人桌機 / 手機版面、商品加入、最後確認與送出成功流程。測試截圖、trace、video 會輸出到 `test-results/`，不得納入 Git。
+
 修改 NAS 服務時：
 
 - 檢查 Python 語法。
