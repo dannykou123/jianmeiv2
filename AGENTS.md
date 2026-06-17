@@ -100,7 +100,8 @@ Git push 規則：
 - push 前先執行與變更範圍相符的測試或檢查；若無法測試，要在回報中明確說明原因。
 - push 前先執行 `git status --short`，確認只包含本次任務相關變更。
 - commit 前不要把使用者未要求、與任務無關的修改一起 staging。
-- commit message 要簡短描述本階段成果，例如 `docs: update agent workflow`、`fix: keep print settings stable`。
+- commit message 一律使用繁體中文，且內容要比單行摘要更具體；標題需清楚說明本階段成果，必要時加上中文 body，列出主要變更、測試結果與仍需注意的風險。
+- commit 標題可保留 `fix:`、`docs:`、`chore:` 等 conventional commit 前綴，但前綴後的描述要寫中文，例如 `fix: 調整訂購人商品卡排列`。
 - push 目標通常使用目前分支與 `origin`，除非使用者指定其他 remote 或 branch。
 - push 完成後，回報 branch、commit 摘要、push 結果與剩餘未提交檔案。
 - 若 push 失敗，回報錯誤原因，不要改用 destructive git 指令處理。
