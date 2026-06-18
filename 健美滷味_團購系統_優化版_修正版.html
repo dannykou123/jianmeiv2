@@ -10358,6 +10358,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   window.renderHostNote=renderHostNote;
   function backToTeamList(){
+    if(typeof closeOrgChat==='function') closeOrgChat();
     currentTeamId=null;
     document.getElementById('orgDetailView').hidden=true;
     document.getElementById('orgListView').hidden=false;

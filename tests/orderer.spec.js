@@ -338,6 +338,10 @@ test.describe('orderer page automation', () => {
     expect(mobileChat.inputAboveNav).toBe(true);
     expect(mobileChat.navOnTop).toBe(true);
 
+    await page.locator('#orgTabList').click();
+    await expect(page.locator('#orgChat.open')).toHaveCount(0);
+    await expect(page.locator('#organizer.active #orgListView')).toBeVisible();
+
     await page.screenshot({ path: testInfo.outputPath('organizer-mobile-chat.png'), fullPage: false });
     expect(issues).toEqual([]);
   });
