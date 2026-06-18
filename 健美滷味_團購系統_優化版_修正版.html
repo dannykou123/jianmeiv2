@@ -3375,7 +3375,6 @@
   .org-quick-btn.primary .ico{stroke:#fff;stroke-width:2.6}
   .org-quick-btn.ghost{background:color-mix(in srgb,var(--rose) 12%,transparent);border-color:color-mix(in srgb,var(--rose) 42%,transparent);color:var(--rose-hi)}
   .org-quick-btn.ghost:hover{background:color-mix(in srgb,var(--rose) 18%,transparent)}
-  #orgFoot{display:none!important}
   /* 團主收款設定 */
   .pay-setup{margin:14px 20px 0;background:var(--card);border:1px solid var(--edge);border-radius:14px;padding:16px 16px 6px}
   .pay-setup-h{display:flex;align-items:baseline;gap:10px;margin-bottom:12px;flex-wrap:wrap}
@@ -3477,15 +3476,11 @@
   .org3d-meta .os-id{font-family:ui-monospace,monospace;color:var(--gold);font-weight:700}
   .org3d-meta .recv{color:var(--green);font-weight:700}
   .org3d-meta #payRingPct{color:var(--green);font-weight:700}
-  .org3d-submit{display:flex;justify-content:flex-end;padding:14px 18px 4px}
-  .org3d-submit-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:13px;padding:12px 20px;background:linear-gradient(165deg,var(--btn-hi),var(--btn));color:#fff;font-family:'Noto Sans TC';font-size:14.5px;font-weight:900;cursor:pointer;box-shadow:0 6px 18px color-mix(in srgb,var(--gold) 34%,transparent);white-space:nowrap}
-  .org3d-submit-btn .ico{width:17px;height:17px;stroke:#fff;stroke-width:2.6}
-  .org3d-submit-btn:active{transform:scale(.97)}
   @media(max-width:560px){ .org3d-amt{font-size:38px} .org3d-bar{padding:16px 24px 0} }
   .org3-acts button:not(:last-child)::after{content:"";position:absolute;right:0;top:50%;transform:translateY(-50%);width:1px;height:15px;background:var(--edge)}
   .team-open>.team-note.open{padding:2px 18px 6px}
   .team-open>.team-note.open .team-note-body{padding-bottom:0}
-  .org-foot{position:fixed;left:0;right:0;bottom:0;z-index:8;padding:12px 20px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(0deg,var(--bg-0) 60%,transparent);pointer-events:none}
+  .org-foot{position:fixed;left:0;right:0;bottom:0;z-index:70;padding:12px 20px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(0deg,var(--bg-0) 60%,transparent);pointer-events:none}
   .org-foot-bar{pointer-events:auto;width:100%;max-width:720px;margin:0 auto;display:flex;align-items:center;gap:14px;background:linear-gradient(165deg,rgba(255,255,255,.085),rgba(255,255,255,.03));-webkit-backdrop-filter:blur(20px) saturate(1.3);backdrop-filter:blur(20px) saturate(1.3);color:var(--ink);border:1px solid var(--edge);border-radius:18px;padding:11px 12px 11px 18px;font-size:16px;font-family:'Noto Sans TC';box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 8px 24px rgba(0,0,0,.42)}
   .org-foot-bar:active{transform:scale(.98)}
   .org-foot-c{display:inline-flex;flex-direction:column;line-height:1.25;padding:0;flex-shrink:0}
@@ -4761,7 +4756,12 @@
   .pnav-cta-info small{font-size:10.5px;opacity:.88;font-weight:600}
   .pnav-cta-info b{font-size:15px;font-family:'DM Mono',monospace}
   @media(max-width:767px){ #ordPnav{display:flex} #orderer .ordx{padding-bottom:98px} }
-  @media(max-width:1079px){ #orgPnav{display:flex} body[data-screen="organizer"] .org-foot{display:none} .org-wrap{padding-bottom:104px} }
+  @media(max-width:1079px){
+    #orgPnav{display:flex}
+    body[data-screen="organizer"] .org-wrap{padding-bottom:176px}
+    body[data-screen="organizer"] .org-foot{bottom:calc(74px + env(safe-area-inset-bottom));padding:8px 12px 10px;background:linear-gradient(0deg,color-mix(in srgb,var(--bg-0) 78%,transparent) 70%,transparent)}
+    body.org-chat-open[data-screen="organizer"] .org-foot{display:none!important}
+  }
   /* 指定舊檔字級設定覆蓋：以最後規則為準，避免前方歷史樣式固定 px 擋住設定 */
   .set-modal{position:fixed!important;inset:0!important;z-index:99999;background:rgba(0,0,0,.42);margin:0!important;padding:clamp(10px,2vw,24px)!important;display:none;overflow-y:auto;overscroll-behavior:contain}
   .set-modal:not([hidden]){display:flex;align-items:center;justify-content:center}
@@ -5866,9 +5866,6 @@
           <span class="os-id" id="teamId">#—</span> · <span id="osPeople">0</span> 人 · 已收 <b class="recv" id="ovRecv">$0</b> · <span id="payRingPct">0%</span> 收款
           <span style="display:none"><b id="ovPaidN">0</b><b id="ovTotalN">0</b><b id="ovUnrecv">$0</b></span>
         </div>
-        <div class="org3d-submit">
-          <button class="org3d-submit-btn" id="orgHeroSubmit" onclick="submitToShop()">送單給店家 <svg class="ico" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
-        </div>
         <div class="org3-acts">
           <button onclick="copyTeamLink()">連結</button>
           <button onclick="openLineShare()">LINE</button>
@@ -6826,8 +6823,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function renderOrgChat(){ const body=document.getElementById('ocBody'); if(!body)return; renderOcTabs(); const sub=document.getElementById('ocSub'); if(!ocTeam){ if(sub)sub.textContent='選擇團購單'; body.innerHTML='<div class="cd-empty">選擇上方團購單，開始與店家對話</div>'; return; } const m=chatMeta(ocTeam); if(sub)sub.textContent=m.name+' · #'+ocTeam; body.innerHTML=chatBubbles(ocTeam,'org'); body.scrollTop=body.scrollHeight; }
   function selectOcTeam(id){ if(!id)return; ocTeam=id; (MESSAGES[id]||[]).forEach(m=>{ if(m.from!=='org') m._seen=true; }); renderOrgChat(); refreshChatBadges(); }
   function initOrgChat(){ const l=ocTeamList(); if(!ocTeam||!l.some(t=>t.id===ocTeam)){ ocTeam='_general'; } fillStickerBar('ocEmoji','org'); renderOrgChat(); refreshChatBadges(); }
-  function openOrgChat(id){ if(id) ocTeam=id; if(!ocTeam) initOrgChat(); if(ocTeam)(MESSAGES[ocTeam]||[]).forEach(m=>{ if(m.from!=='org') m._seen=true; }); fillStickerBar('ocEmoji','org'); renderOrgChat(); const p=document.getElementById('orgChat'); if(p)p.classList.add('open'); refreshChatBadges(); setTimeout(()=>{ const b=document.getElementById('ocBody'); if(b)b.scrollTop=b.scrollHeight; const i=document.getElementById('ocInput'); if(i&&window.innerWidth>=980)i.focus(); },40); }
-  function closeOrgChat(){ const p=document.getElementById('orgChat'); if(p)p.classList.remove('open'); }
+  function openOrgChat(id){ if(id) ocTeam=id; if(!ocTeam) initOrgChat(); if(ocTeam)(MESSAGES[ocTeam]||[]).forEach(m=>{ if(m.from!=='org') m._seen=true; }); fillStickerBar('ocEmoji','org'); renderOrgChat(); const p=document.getElementById('orgChat'); if(p)p.classList.add('open'); document.body.classList.add('org-chat-open'); refreshChatBadges(); setTimeout(()=>{ const b=document.getElementById('ocBody'); if(b)b.scrollTop=b.scrollHeight; const i=document.getElementById('ocInput'); if(i&&window.innerWidth>=980)i.focus(); },40); }
+  function closeOrgChat(){ const p=document.getElementById('orgChat'); if(p)p.classList.remove('open'); document.body.classList.remove('org-chat-open'); }
   function sendOrgChat(){ const i=document.getElementById('ocInput'); if(!i)return; const t=i.value.trim(); if(!t||!ocTeam)return; if(!MESSAGES[ocTeam])MESSAGES[ocTeam]=[]; MESSAGES[ocTeam].push({from:'org',text:t,ts:Date.now(),_seen:true}); i.value=''; cdAutoGrow(i); renderOrgChat(); refreshChatBadges(); if(typeof renderChatList==='function')renderChatList(); if(typeof renderChatRoom==='function')renderChatRoom(); }
   function ocKey(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendOrgChat(); } }
   window.openOrgChat=openOrgChat; window.closeOrgChat=closeOrgChat; window.selectOcTeam=selectOcTeam; window.sendOrgChat=sendOrgChat; window.ocKey=ocKey; window.renderOrgChat=renderOrgChat; window.renderOcTabs=renderOcTabs; window.initOrgChat=initOrgChat;

@@ -346,7 +346,7 @@ test.describe('orderer page automation', () => {
     expect(issues).toEqual([]);
   });
 
-  test('organizer detail uses top submit action and bottom add-order action on mobile', async ({ page }, testInfo) => {
+  test('organizer detail uses compact bottom submit summary and add-order action on mobile', async ({ page }, testInfo) => {
     const issues = collectPageIssues(page);
     await page.setViewportSize({ width: 390, height: 844 });
 
@@ -354,16 +354,45 @@ test.describe('orderer page automation', () => {
     await openOrganizerDetail(page);
 
     await expect(page.locator('#orgPnav')).toBeVisible();
-    await expect(page.locator('#orgPnavCtaLabel')).toHaveText('新增訂單');
-    await expect(page.locator('#orgHeroSubmit')).toBeVisible();
+    await expect(page.locator('#orgHeroSubmit')).toHaveCount(0);
+    await expect(page.locator('#orgFoot')).toBeVisible();
+
+    const submitSummary = await page.evaluate(() => {
+      const foot = document.querySelector('#orgFoot');
+      const nav = document.querySelector('#orgPnav');
+      const footRect = foot?.getBoundingClientRect();
+      const navRect = nav?.getBoundingClientRect();
+      const count = document.querySelector('#ffCount')?.textContent?.trim();
+      const total = document.querySelector('#ffTotal')?.textContent?.trim();
+      const people = document.querySelector('#osPeople')?.textContent?.trim();
+      const orderTotal = document.querySelector('#osTotal')?.textContent?.trim();
+      return {
+        aboveNav: !!footRect && !!navRect && footRect.bottom <= navRect.top + 1,
+        compact: !!footRect && footRect.height <= 92,
+        syncsStats: count === people && total === orderTotal,
+        buttonVisible: !!document.querySelector('#orgFootBtn') && getComputedStyle(document.querySelector('#orgFootBtn')).display !== 'none'
+      };
+    });
+    expect(submitSummary.aboveNav).toBe(true);
+    expect(submitSummary.compact).toBe(true);
+    expect(submitSummary.syncsStats).toBe(true);
+    expect(submitSummary.buttonVisible).toBe(true);
 
     await page.locator('#orgPnavCta').click();
     await expect(page.locator('#proxyModal.show')).toBeVisible();
     await expect(page.locator('#submitModal.show')).toHaveCount(0);
     await page.evaluate(() => window.closeProxyOrder());
 
-    await page.locator('#orgHeroSubmit').click();
+    await page.locator('#orgFootBtn').click();
     await expect(page.locator('#submitModal.show')).toBeVisible();
+    await page.evaluate(() => window.closeSubmitModal());
+
+    await page.locator('#orgTabChat').click();
+    await expect(page.locator('#orgChat.open')).toBeVisible();
+    await expect(page.locator('#orgFoot')).toBeHidden();
+    await page.locator('#orgChat .oc-x').click();
+    await expect(page.locator('#orgChat.open')).toHaveCount(0);
+    await expect(page.locator('#orgFoot')).toBeVisible();
 
     await page.screenshot({ path: testInfo.outputPath('organizer-mobile-actions.png'), fullPage: false });
     expect(issues).toEqual([]);
