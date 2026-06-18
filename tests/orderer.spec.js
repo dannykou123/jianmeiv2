@@ -100,6 +100,24 @@ test.describe('orderer page automation', () => {
       return !!fields && !!cart && fields.right <= cart.left - 12;
     });
     expect(doesHeaderAvoidCart).toBe(true);
+    const doFieldsAlignWithProductColumns = await page.evaluate(() => {
+      const nameField = document.querySelector('#orderer.active #ordName')?.getBoundingClientRect();
+      const deptField = document.querySelector('#orderer.active #ordDept')?.getBoundingClientRect();
+      const productCards = Array.from(document.querySelectorAll('#orderer.active #ordMenu .ordx-card'))
+        .slice(0, 2)
+        .map(element => element.getBoundingClientRect());
+      const isClose = (actual, expected) => Math.abs(actual - expected) <= 2;
+
+      if (!nameField || !deptField || productCards.length < 2) return false;
+
+      return (
+        isClose(nameField.left, productCards[0].left) &&
+        isClose(nameField.right, productCards[0].right) &&
+        isClose(deptField.left, productCards[1].left) &&
+        isClose(deptField.right, productCards[1].right)
+      );
+    });
+    expect(doFieldsAlignWithProductColumns).toBe(true);
 
     const categories = page.locator('#orderer.active #ordCats .ordx-cat');
     await expect(categories.first()).toBeVisible();

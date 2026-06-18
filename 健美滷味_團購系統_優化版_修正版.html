@@ -4650,11 +4650,11 @@
   .print-row button .ico{width:14px;height:14px}
   /* ════════════════ #ordx：訂購人頁・重新設計（卡片格・點一下就加）════════════════ */
   #orderer .ordx{max-width:1180px;margin:0 auto;padding:0 16px 40px}
-  .ordx-head{padding:20px 2px 8px}
+  .ordx-head{padding:20px 0 8px}
   .ordx-shop{font-family:'Noto Serif TC',serif;font-weight:900;font-size:23px;color:var(--ink)}
   .ordx-sub{font-size:13px;color:var(--sub);margin-top:3px}
-  .ordx-me{display:flex;gap:10px;margin-top:13px}
-  .ordx-me input,.ordx-me select{flex:1;min-width:0;background:var(--card);border:1px solid var(--edge-hi);border-radius:12px;padding:11px 14px;color:var(--ink);font-size:15px;font-family:'Noto Sans TC';transition:border-color .15s;box-sizing:border-box}
+  .ordx-me{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-top:13px}
+  .ordx-me input,.ordx-me select{flex:1;min-width:0;width:100%;background:var(--card);border:1px solid var(--edge-hi);border-radius:12px;padding:11px 14px;color:var(--ink);font-size:15px;font-family:'Noto Sans TC';transition:border-color .15s;box-sizing:border-box}
   .ordx-me input:focus,.ordx-me select:focus{outline:none;border-color:var(--rose)}
   .ord-dept-wrap{flex:1;min-width:0;display:flex;gap:8px}
   .ord-dept-wrap select{flex:1}
@@ -4699,7 +4699,7 @@
   .ord-cart-mini .ocm-step b{min-width:16px;text-align:center;font-size:13px;color:var(--ink)}
   .ord-cart-mini .ocm-sub{font-size:13px;font-weight:700;color:var(--sub);font-family:'DM Mono',monospace;min-width:46px;text-align:right}
   @media(min-width:768px){
-    #orderer .ordx{--ord-cart-w:min(330px,calc(100vw - 32px));--ord-cart-gap:42px}
+    #orderer .ordx{--ord-cart-w:min(330px,calc(100vw - 32px));--ord-cart-gap:18px}
     .ordx-head{padding-right:calc(var(--ord-cart-w) + var(--ord-cart-gap));box-sizing:border-box}
     .ordx-body{grid-template-columns:1fr minmax(280px,330px);align-items:start}
     .ordx-cart{display:flex;flex-direction:column;align-self:start;gap:12px;position:fixed;top:10px;right:max(16px,calc((100vw - 1180px)/2 + 16px));width:var(--ord-cart-w);box-sizing:border-box;z-index:8;background:var(--card);border:1px solid var(--edge);border-radius:16px;padding:16px;height:auto;max-height:none}
@@ -4724,7 +4724,7 @@
     #orderer.show-hist .ordx-pick{display:none}
   }
   @media(max-width:560px){#orderer .ordx-grid{grid-template-columns:1fr}}
-  @media(max-width:640px){.ordx-me{flex-direction:column}.ord-dept-wrap{width:100%}}
+  @media(max-width:640px){.ordx-me{grid-template-columns:1fr}.ord-dept-wrap{width:100%}}
   /* ════════════════ 高級底部導覽列 .pnav（訂購人<768＝手機 / 團購人<1080＝iPad＋手機）════════════════ */
   .pnav{position:fixed;left:0;right:0;bottom:0;z-index:60;display:none;align-items:stretch;gap:6px;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--bg-1) 84%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.35);backdrop-filter:blur(22px) saturate(1.35);border-top:1px solid var(--glass-hi);box-shadow:0 -8px 30px rgba(0,0,0,.22)}
   .pnav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 4px;border:none;background:none;color:var(--mute);font-size:11px;font-weight:700;font-family:'Noto Sans TC';cursor:pointer;border-radius:12px;transition:color .15s;position:relative}
