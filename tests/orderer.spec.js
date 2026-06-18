@@ -344,18 +344,18 @@ test.describe('orderer page automation', () => {
       const chat = document.querySelector('#orgChat');
       const list = document.querySelector('#organizer.active #orgListView');
       const headChat = document.querySelector('#organizer.active .org-head-chat');
-      if (!chat || !list || !headChat) return { chatDocked: false, listAvoidsChat: false, headChatHidden: false };
+      if (!chat || !list) return { chatDocked: false, listAvoidsChat: false, headChatRemoved: false };
       const chatRect = chat.getBoundingClientRect();
       const listRect = list.getBoundingClientRect();
       return {
         chatDocked: getComputedStyle(chat).display !== 'none' && Math.abs(window.innerWidth - chatRect.right) <= 2,
         listAvoidsChat: listRect.right <= chatRect.left - 12,
-        headChatHidden: getComputedStyle(headChat).display === 'none'
+        headChatRemoved: !headChat
       };
     });
     expect(desktopLayout.chatDocked).toBe(true);
     expect(desktopLayout.listAvoidsChat).toBe(true);
-    expect(desktopLayout.headChatHidden).toBe(true);
+    expect(desktopLayout.headChatRemoved).toBe(true);
 
     await page.screenshot({ path: testInfo.outputPath('organizer-desktop-docked-chat.png'), fullPage: false });
     expect(issues).toEqual([]);
@@ -451,6 +451,8 @@ test.describe('orderer page automation', () => {
     await expect(page.locator('#orgProfilePanel.show')).toBeVisible();
     await expect(page.locator('#orgProfilePanel')).toContainText('團主資訊');
     await expect(page.locator('#orgProfilePanel')).toContainText('團主代碼');
+    await expect(page.locator('#organizer.active .org-head-chat')).toHaveCount(0);
+    await expect(page.locator('#orgProfilePanel')).not.toContainText('通知設定');
     await expect(page.locator('#orgProfilePanel')).not.toContainText('切換身份');
     await expect(page.locator('#orgProfilePanel')).not.toContainText('登出');
 
@@ -488,6 +490,101 @@ test.describe('orderer page automation', () => {
     expect(desktopPanel.notBottomSheet).toBe(true);
 
     await page.screenshot({ path: testInfo.outputPath('organizer-profile-desktop-popover.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
+  test('organizer profile edits contact defaults and applies them to new teams', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    await openOrganizerList(page);
+    await page.evaluate(() => {
+      localStorage.removeItem('jm_org_profile');
+      if (typeof window.setMaxTeams === 'function') window.setMaxTeams(9);
+    });
+
+    await page.locator('#orgProfileBtn').click();
+    await expect(page.locator('#orgProfilePanel.show')).toBeVisible();
+    await page.locator('#orgProfileBasicToggle').click();
+    await expect(page.locator('#orgProfileBasicFields')).toBeVisible();
+    await page.locator('#orgProfileNameInput').fill('林小美');
+    await page.locator('#orgProfileCompanyInput').fill('健美南港團主');
+    await page.locator('#orgDefaultAddress').fill('台北市南港區測試路 88 號');
+    await page.locator('#orgDefaultContactName').fill('林小美');
+    await page.locator('#orgDefaultContactPhone').fill('0912-345-678');
+    await page.locator('#orgProfileBasicSave').click();
+    await page.locator('#orgProfileClose').click();
+
+    await page.locator('#orgProfileBtn').click();
+    await expect(page.locator('#orgProfileName')).toContainText('林小美・健美南港團主');
+    await page.locator('#orgProfileBasicToggle').click();
+    await expect(page.locator('#orgDefaultAddress')).toHaveValue('台北市南港區測試路 88 號');
+    await page.locator('#orgProfileClose').click();
+
+    await page.evaluate(() => window.openNewTeam());
+    await expect(page.locator('#newTeamModal.show')).toBeVisible();
+    await expect(page.locator('#ntAddress')).toHaveValue('台北市南港區測試路 88 號');
+    await expect(page.locator('#ntContactName')).toHaveValue('林小美');
+    await expect(page.locator('#ntContactPhone')).toHaveValue('0912-345-678');
+    await page.locator('#ntAddress').fill('');
+    await page.locator('#ntContactName').fill('');
+    await page.locator('#ntContactPhone').fill('');
+    await page.locator('#ntName').fill('可空白聯絡資料測試團');
+    await page.evaluate(() => window.createTeam());
+    await expect(page.locator('#newTeamModal.show')).toHaveCount(0);
+
+    const createdTeam = await page.evaluate(() => TEAMS?.[0] || null);
+    expect(createdTeam).toMatchObject({
+      name: '可空白聯絡資料測試團',
+      address: '',
+      contactName: '',
+      contactPhone: '',
+    });
+
+    await page.screenshot({ path: testInfo.outputPath('organizer-profile-contact-defaults.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
+  test('organizer profile theme is shared with orderer and does not change store theme', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 1024, height: 768 });
+
+    await openOrganizerList(page);
+    await page.evaluate(() => {
+      localStorage.setItem('jm_theme_all', 'truffle');
+      localStorage.removeItem('jm_theme_org_personal');
+      localStorage.removeItem('jm_theme_buyer_personal');
+      if (typeof window.applyScreenTheme === 'function') window.applyScreenTheme();
+    });
+
+    await page.locator('#orgProfileBtn').click();
+    await page.locator('#orgProfileThemeToggle').click();
+    await expect(page.locator('#orgProfileThemeFields')).toBeVisible();
+    await page.locator('[data-org-theme="mint"]').click();
+
+    const organizerTheme = await page.evaluate(() => ({
+      global: localStorage.getItem('jm_theme_all'),
+      org: localStorage.getItem('jm_theme_org_personal'),
+      buyer: localStorage.getItem('jm_theme_buyer_personal'),
+      bodyHasMint: document.body.classList.contains('ct-mint'),
+    }));
+    expect(organizerTheme).toEqual({
+      global: 'truffle',
+      org: 'mint',
+      buyer: 'mint',
+      bodyHasMint: true,
+    });
+
+    await page.locator('#orgProfileClose').click();
+    await goScreen(page, 'orderer');
+    await expect(page.locator('#orderer.active')).toBeVisible();
+    await expect.poll(() => page.evaluate(() => document.body.classList.contains('ct-mint'))).toBe(true);
+
+    await goScreen(page, 'admin');
+    await expect(page.locator('#admin.active')).toBeVisible();
+    await expect.poll(() => page.evaluate(() => document.body.classList.contains('ct-truffle'))).toBe(true);
+
+    await page.screenshot({ path: testInfo.outputPath('organizer-shared-theme.png'), fullPage: false });
     expect(issues).toEqual([]);
   });
 

@@ -3625,9 +3625,6 @@
   .org-laytab b{flex:1;text-align:center;font-size:14px;font-weight:700;padding:9px 0;border-radius:9px;color:var(--sub);cursor:pointer;position:relative;transition:.15s}
   .org-laytab b.on{background:var(--gold);color:#fff}
   .org-laytab .lt-bdg{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;background:var(--danger);color:#fff;border-radius:999px;font-size:10px;font-weight:800;margin-left:5px;padding:0 4px}
-  .org-head-chat{position:relative;width:40px;height:40px;border:1px solid var(--edge-hi);background:var(--card);border-radius:11px;color:var(--rose);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.18s}
-  .org-head-chat:hover{border-color:var(--rose)}
-  .org-head-chat .ico{width:20px;height:20px}
   .org-head-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
   .org-profile-btn{position:relative;width:40px;height:40px;border:1px solid var(--edge-hi);background:var(--card);border-radius:11px;color:var(--rose);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.18s;font-family:'Noto Serif TC',serif;font-weight:900;font-size:17px}
   .org-profile-btn:hover{border-color:var(--rose);transform:translateY(-1px)}
@@ -3659,6 +3656,16 @@
   .org-profile-pay.open{display:block}
   .org-profile-pay-grid{display:grid;gap:10px}
   .org-profile-pay .pay-fld{margin:0}
+  .org-profile-section{display:none;border:1px solid var(--edge);border-radius:15px;padding:12px;background:color-mix(in srgb,var(--card) 78%,transparent)}
+  .org-profile-section.open{display:block}
+  .org-profile-form{display:grid;gap:10px}
+  .org-profile-form label{display:grid;gap:6px;color:var(--sub);font-size:12px;font-weight:800}
+  .org-profile-form input{width:100%;box-sizing:border-box;border:1px solid var(--edge-hi);background:var(--card);border-radius:11px;color:var(--ink);padding:11px 12px;font-family:'Noto Sans TC';font-size:14px}
+  .org-profile-form input:focus{outline:none;border-color:var(--rose)}
+  .org-profile-theme-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .org-profile-theme-card{border:1px solid var(--edge);border-radius:13px;background:var(--card);color:var(--ink);padding:9px 10px;text-align:left;font-weight:800;font-family:'Noto Sans TC';cursor:pointer;display:flex;align-items:center;gap:8px}
+  .org-profile-theme-card.on{border-color:var(--rose);box-shadow:0 0 0 2px color-mix(in srgb,var(--rose) 18%,transparent)}
+  .org-profile-theme-card .thc-prev{width:30px;height:30px;border-radius:9px;flex-shrink:0}
   .org-profile-save{width:100%;margin-top:11px;border:none;border-radius:12px;padding:12px 14px;background:var(--btn);color:#fff;font-weight:800;font-family:'Noto Sans TC';cursor:pointer}
   @media(max-width:899px){
     .org-profile-panel.show .org-profile-mask{background:rgba(8,8,12,.45);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
@@ -3677,9 +3684,6 @@
   .tpk-card.on::after{content:"✓";position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:var(--rose);color:#0c0c0f;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;z-index:2}
   .tpk-card .thc-prev{height:54px}
   .tpk-nm{display:block;font-size:12.5px;font-weight:700;color:var(--ink);padding:7px 9px}
-  .ohc-badge{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--danger);color:#fff;font-size:11px;font-weight:900;display:none;align-items:center;justify-content:center;border:2px solid var(--bg-0);box-sizing:content-box}
-  .ohc-badge.show{display:flex}
-  @media(min-width:1180px){ body[data-screen="organizer"] .org-head-chat{display:none} }
   .org-chat-fab svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
   .ocf-badge{display:none;position:absolute;top:-3px;right:-3px;min-width:23px;height:23px;padding:0 5px;border-radius:999px;background:var(--danger);color:#fff;font-size:12px;font-weight:800;align-items:center;justify-content:center;border:2px solid var(--bg-0);box-sizing:content-box}
   .ocf-badge.show{display:flex}
@@ -5868,7 +5872,6 @@
       </div>
       <div class="org-head-actions">
         <button class="org-profile-btn" id="orgProfileBtn" onclick="openOrgProfile()" aria-label="團主資訊">王</button>
-        <button class="org-head-chat" onclick="openOrgChat()" aria-label="與店家對話"><svg class="ico" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 01-9 8.4 9.6 9.6 0 01-3-.5L3 21l1.6-4a8.4 8.4 0 01-1-4 8.4 8.4 0 018.4-8.4A8.4 8.4 0 0121 11.5z"/></svg><span class="ohc-badge" id="ocHeadBadge">0</span></button>
       </div>
     </header>
 
@@ -5988,11 +5991,21 @@
         <button type="button" class="org-profile-close" id="orgProfileClose" onclick="closeOrgProfile()" aria-label="關閉">&times;</button>
       </div>
       <div class="org-profile-list">
-        <button type="button" class="org-profile-row" id="orgProfileNotifyToggle" onclick="toggleOrgProfileNotify()">
-          <span class="org-profile-ic">鈴</span>
-          <span class="org-profile-row-t"><b>通知設定</b><small id="orgProfileNotifyText">新訊息、店家回覆、送單狀態提醒</small></span>
+        <button type="button" class="org-profile-row" id="orgProfileBasicToggle" onclick="toggleOrgProfileBasic()">
+          <span class="org-profile-ic">主</span>
+          <span class="org-profile-row-t"><b>基本資料</b><small id="orgProfileBasicText">團主名稱、聯絡人、電話與地址</small></span>
           <span class="org-profile-go">›</span>
         </button>
+        <div class="org-profile-section" id="orgProfileBasicFields" hidden>
+          <div class="org-profile-form">
+            <label>團主名稱<input type="text" id="orgProfileNameInput" placeholder="例：王小明"></label>
+            <label>顯示身分<input type="text" id="orgProfileCompanyInput" placeholder="例：健美滷味團購主"></label>
+            <label>預設地址<input type="text" id="orgDefaultAddress" placeholder="例：台北市南港區..."></label>
+            <label>預設聯絡人<input type="text" id="orgDefaultContactName" placeholder="例：王小明"></label>
+            <label>預設聯絡電話<input type="tel" id="orgDefaultContactPhone" placeholder="例：0912-345-678"></label>
+          </div>
+          <button type="button" class="org-profile-save" id="orgProfileBasicSave" onclick="saveOrgProfileBasic()">儲存基本資料</button>
+        </div>
         <button type="button" class="org-profile-row" id="orgProfilePayToggle" onclick="toggleOrgProfilePay()">
           <span class="org-profile-ic">$</span>
           <span class="org-profile-row-t"><b>預設付款資料</b><small id="orgProfilePayText">新團會自動帶入，團內仍可修改</small></span>
@@ -6014,11 +6027,14 @@
           </div>
           <button type="button" class="org-profile-save" id="orgDefaultPaySave" onclick="saveOrgDefaultPay()">儲存預設付款資料</button>
         </div>
-        <button type="button" class="org-profile-row" id="orgProfileDisplayBtn" onclick="openOrgProfileDisplay()">
+        <button type="button" class="org-profile-row" id="orgProfileThemeToggle" onclick="toggleOrgProfileTheme()">
           <span class="org-profile-ic">Aa</span>
-          <span class="org-profile-row-t"><b>顯示設定</b><small>主題、字級、聊天室版面</small></span>
+          <span class="org-profile-row-t"><b>顯示設定</b><small id="orgProfileThemeText">團主與訂購人共用主題</small></span>
           <span class="org-profile-go">›</span>
         </button>
+        <div class="org-profile-section" id="orgProfileThemeFields" hidden>
+          <div class="org-profile-theme-grid" id="orgProfileThemeGrid"></div>
+        </div>
       </div>
     </section>
   </div>
@@ -6036,6 +6052,14 @@
           <input type="datetime-local" id="ntDeadline"></label>
         <label class="fld-l" style="margin-top:12px">訂購人單位
           <textarea id="ntDeptOptions" rows="2" placeholder="行政部、財務部、業務部、人資、總務、工程"></textarea></label>
+        <label class="fld-l" style="margin-top:12px">聯絡地址<span style="font-weight:400;color:var(--sub)">（給店家送單用）</span>
+          <input type="text" id="ntAddress" placeholder="例：台北市南港區..."></label>
+        <div style="display:flex;gap:10px;margin-top:12px">
+          <label class="fld-l" style="flex:1;margin:0">聯絡人
+            <input type="text" id="ntContactName" placeholder="例：王小明"></label>
+          <label class="fld-l" style="flex:1;margin:0">聯絡電話
+            <input type="tel" id="ntContactPhone" placeholder="例：0912-345-678"></label>
+        </div>
         <div style="display:flex;gap:10px;margin-top:12px">
           <label class="fld-l" style="flex:1;margin:0">預計出貨日<span style="font-weight:400;color:var(--sub)">（配送）</span>
             <input type="date" id="ntDeliver"></label>
@@ -6574,6 +6598,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const fab=document.getElementById('quickFab'); if(fab) fab.hidden = (id!=='admin');
     if(id==='admin' && typeof buildDashboard==='function'){ try{ buildDashboard(); }catch(e){} }
     if(typeof refreshChatBadges==='function'){ try{ refreshChatBadges(); }catch(e){} }
+    if(id==='organizer' && typeof renderOrgProfileHeader==='function'){ try{ renderOrgProfileHeader(); }catch(e){} }
     if(id==='orderer' && typeof renderHostNote==='function'){ try{ renderHostNote(); }catch(e){} }
     if(id==='orderer' && typeof renderOrdererDeptOptions==='function'){ try{ renderOrdererDeptOptions(); }catch(e){} }
     try{ if(window.scrollTo) window.scrollTo(0,0); }catch(e){}
@@ -6902,7 +6927,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     // 團購主：主頁「店家回覆」閃動橫幅
     const al=document.getElementById('orgChatAlert');
     if(al){ let tot=0; (typeof TEAMS!=='undefined'?TEAMS:[]).forEach(t=>{ tot+=chatUnread(t.id,'org'); }); const sub=document.getElementById('orgChatAlertSub'); if(sub) sub.textContent = tot>0 ? ('共 '+tot+' 則未讀，點此查看') : '點此查看'; al.classList.toggle('show',tot>0); }
-    { let tot2=0; (typeof TEAMS!=='undefined'?TEAMS:[]).forEach(t=>{ tot2+=chatUnread(t.id,'org'); }); const fb=document.getElementById('ocFabBadge'); if(fb){ fb.textContent=tot2; fb.classList.toggle('show',tot2>0); } const hb=document.getElementById('ocHeadBadge'); if(hb){ hb.textContent=tot2; hb.classList.toggle('show',tot2>0); } }
+    { let tot2=0; (typeof TEAMS!=='undefined'?TEAMS:[]).forEach(t=>{ tot2+=chatUnread(t.id,'org'); }); const fb=document.getElementById('ocFabBadge'); if(fb){ fb.textContent=tot2; fb.classList.toggle('show',tot2>0); } }
     if(typeof renderOcTabs==='function' && document.getElementById('ocTabs')) renderOcTabs();
     if(typeof updateOrgNav==='function') updateOrgNav();
   }
@@ -10436,18 +10461,27 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   const ORG_PROFILE_KEY='jm_org_profile';
   function defaultOrgProfile(){
     const name='王小明';
-    return {name, company:'健美滷味團購主', code:(typeof orgCode==='function'?orgCode(name):'A00000'), notify:true, defaultPay:{lineId:'',cash:true,bankCode:'',bankAcct:'',bankName:'',bank:''}};
+    return {name, company:'健美滷味團購主', code:(typeof orgCode==='function'?orgCode(name):'A00000'), defaultAddress:'', defaultContactName:name, defaultContactPhone:'', defaultPay:{lineId:'',cash:true,bankCode:'',bankAcct:'',bankName:'',bank:''}};
   }
   function getOrgProfile(){
     const base=defaultOrgProfile();
     try{
       const raw=JSON.parse(localStorage.getItem(ORG_PROFILE_KEY)||'{}')||{};
       const defaultPay=Object.assign({},base.defaultPay,raw.defaultPay||{});
-      return Object.assign({},base,raw,{defaultPay,code:raw.code||base.code});
+      return Object.assign({},base,raw,{defaultPay,code:raw.code||base.code,defaultContactName:raw.defaultContactName||raw.name||base.defaultContactName});
     }catch(e){ return base; }
   }
   function saveOrgProfile(profile){
     try{ localStorage.setItem(ORG_PROFILE_KEY, JSON.stringify(profile)); }catch(e){}
+  }
+  function orgProfileHeaderText(){
+    const p=getOrgProfile();
+    return `${p.name}發起 · 團購主編號 ${p.code||'A00000'} · 管理你的開團`;
+  }
+  function renderOrgProfileHeader(){
+    const sub=document.getElementById('orgSubtitle');
+    const list=document.getElementById('orgListView');
+    if(sub && list && !list.hidden) sub.textContent=orgProfileHeaderText();
   }
   function orgDefaultPay(){
     const p=getOrgProfile();
@@ -10480,6 +10514,21 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     };
   }
   function profileInitial(name){ return String(name||'?').trim().charAt(0)||'?'; }
+  function orgSharedTheme(){
+    try{
+      const org=localStorage.getItem('jm_theme_org_personal');
+      const buyer=localStorage.getItem('jm_theme_buyer_personal');
+      if(typeof THEME_DEF!=='undefined' && THEME_DEF[org]) return org;
+      if(typeof THEME_DEF!=='undefined' && THEME_DEF[buyer]) return buyer;
+    }catch(e){}
+    return (typeof globalTheme==='function') ? globalTheme() : 'truffle';
+  }
+  function renderOrgProfileThemeCards(){
+    const grid=document.getElementById('orgProfileThemeGrid'); if(!grid || typeof THEME_DEF==='undefined') return;
+    const cur=orgSharedTheme();
+    grid.innerHTML=Object.keys(THEME_DEF).map(k=>`<button type="button" class="org-profile-theme-card ${k===cur?'on':''}" data-org-theme="${k}" onclick="pickOrgProfileTheme('${k}')"><span class="thc-prev tp-${k}"></span><span>${THEME_DEF[k].label}</span></button>`).join('');
+    const txt=document.getElementById('orgProfileThemeText'); if(txt) txt.textContent=`團主與訂購人共用：${(THEME_DEF[cur]||THEME_DEF.truffle).label}`;
+  }
   function renderOrgProfileSummary(){
     const p=getOrgProfile();
     const pay=orgDefaultPay();
@@ -10488,22 +10537,27 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const av=document.getElementById('orgProfileAvatar'); if(av) av.textContent=initial;
     const nm=document.getElementById('orgProfileName'); if(nm) nm.textContent=`${p.name}・${p.company||'團購主'}`;
     const cd=document.getElementById('orgProfileCode'); if(cd) cd.textContent=p.code||'A00000';
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v||''; };
+    set('orgProfileNameInput',p.name);
+    set('orgProfileCompanyInput',p.company);
+    set('orgDefaultAddress',p.defaultAddress);
+    set('orgDefaultContactName',p.defaultContactName);
+    set('orgDefaultContactPhone',p.defaultContactPhone);
+    const basicText=document.getElementById('orgProfileBasicText');
+    if(basicText) basicText.textContent=[p.defaultAddress?'地址已設定':null,p.defaultContactPhone?'電話已設定':null].filter(Boolean).join('、')||'團主名稱、聯絡人、電話與地址';
     const line=document.getElementById('orgDefaultLineId'); if(line) line.value=pay.lineId;
     const code=document.getElementById('orgDefaultBankCode'); if(code) code.value=pay.bankCode;
     const acct=document.getElementById('orgDefaultBankAcct'); if(acct) acct.value=pay.bankAcct;
     const cash=document.getElementById('orgDefaultCash');
     if(cash){ cash.classList.toggle('on',pay.cash); cash.setAttribute('aria-pressed',pay.cash?'true':'false'); }
     onOrgDefaultBankCode();
-    const nt=document.getElementById('orgProfileNotifyText');
-    if(nt){
-      if(typeof notifySupported==='function' && !notifySupported()) nt.textContent='此瀏覽器不支援推播通知';
-      else nt.textContent=(typeof notifyEnabled==='function' && notifyEnabled())?'通知已開啟':'新訊息、店家回覆、送單狀態提醒';
-    }
     const pt=document.getElementById('orgProfilePayText');
     if(pt){
       const hasLine=!!pay.lineId, hasBank=!!(pay.bankCode||pay.bankAcct);
       pt.textContent=(hasLine||hasBank||pay.cash)?`新團會帶入：${[hasLine?'LINE ID':null,hasBank?'銀行帳號':null,pay.cash?'現金':null].filter(Boolean).join('、')}`:'新團會自動帶入，團內仍可修改';
     }
+    renderOrgProfileThemeCards();
+    renderOrgProfileHeader();
   }
   function openOrgProfile(){
     renderOrgProfileSummary();
@@ -10513,15 +10567,36 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function closeOrgProfile(){
     const panel=document.getElementById('orgProfilePanel');
     if(panel) panel.classList.remove('show');
-    const payBox=document.getElementById('orgProfilePayFields');
-    if(payBox){ payBox.hidden=true; payBox.classList.remove('open'); }
+    ['orgProfileBasicFields','orgProfilePayFields','orgProfileThemeFields'].forEach(id=>{
+      const box=document.getElementById(id);
+      if(box){ box.hidden=true; box.classList.remove('open'); }
+    });
+  }
+  function toggleOrgSection(id){
+    const box=document.getElementById(id); if(!box) return;
+    const open=box.hidden;
+    box.hidden=!open;
+    box.classList.toggle('open',open);
+    if(open) renderOrgProfileSummary();
+  }
+  function toggleOrgProfileBasic(){ toggleOrgSection('orgProfileBasicFields'); }
+  function saveOrgProfileBasic(){
+    const p=getOrgProfile();
+    const val=id=>{ const el=document.getElementById(id); return el ? String(el.value||'').trim() : ''; };
+    p.name=val('orgProfileNameInput')||p.name||'王小明';
+    p.company=val('orgProfileCompanyInput')||'健美滷味團購主';
+    p.defaultAddress=val('orgDefaultAddress');
+    p.defaultContactName=val('orgDefaultContactName')||p.name;
+    p.defaultContactPhone=val('orgDefaultContactPhone');
+    saveOrgProfile(p);
+    renderOrgProfileSummary();
+    toast('已儲存團主基本資料');
   }
   function toggleOrgProfilePay(){
-    const payBox=document.getElementById('orgProfilePayFields'); if(!payBox) return;
-    const open=payBox.hidden;
-    payBox.hidden=!open;
-    payBox.classList.toggle('open',open);
-    if(open) renderOrgProfileSummary();
+    toggleOrgSection('orgProfilePayFields');
+  }
+  function toggleOrgProfileTheme(){
+    toggleOrgSection('orgProfileThemeFields');
   }
   function onOrgDefaultBankCode(){
     const code=(document.getElementById('orgDefaultBankCode')?.value||'').trim();
@@ -10542,14 +10617,15 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     renderOrgProfileSummary();
     toast('已儲存團主預設付款資料');
   }
-  function toggleOrgProfileNotify(){
-    if(typeof notifySupported==='function' && !notifySupported()){ toast('此裝置／瀏覽器不支援通知',true); renderOrgProfileSummary(); return; }
-    if(typeof notifyEnabled==='function' && !notifyEnabled() && typeof requestNotify==='function'){
-      requestNotify().then(()=>renderOrgProfileSummary());
-    }else if(typeof toggleNotify==='function'){
-      toggleNotify();
-      renderOrgProfileSummary();
-    }
+  function pickOrgProfileTheme(name){
+    if(typeof THEME_DEF==='undefined' || !THEME_DEF[name]) return;
+    try{
+      localStorage.setItem('jm_theme_org_personal',name);
+      localStorage.setItem('jm_theme_buyer_personal',name);
+    }catch(e){}
+    if(typeof applyScreenTheme==='function') applyScreenTheme();
+    renderOrgProfileThemeCards();
+    toast('已套用團購主與訂購人主題：'+THEME_DEF[name].label);
   }
   function copyOrgProfileCode(){
     const code=getOrgProfile().code||'A00000';
@@ -10557,13 +10633,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(code).then(done).catch(()=>{}); return; }
     const ta=document.createElement('textarea'); ta.value=code; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); done(); }catch(e){} ta.remove();
   }
-  function openOrgProfileDisplay(){
-    closeOrgProfile();
-    if(typeof openThemePicker==='function') openThemePicker();
-  }
-  window.openOrgProfile=openOrgProfile; window.closeOrgProfile=closeOrgProfile; window.toggleOrgProfilePay=toggleOrgProfilePay;
+  window.openOrgProfile=openOrgProfile; window.closeOrgProfile=closeOrgProfile; window.toggleOrgProfileBasic=toggleOrgProfileBasic; window.saveOrgProfileBasic=saveOrgProfileBasic; window.toggleOrgProfilePay=toggleOrgProfilePay; window.toggleOrgProfileTheme=toggleOrgProfileTheme;
   window.onOrgDefaultBankCode=onOrgDefaultBankCode; window.toggleOrgDefaultCash=toggleOrgDefaultCash; window.saveOrgDefaultPay=saveOrgDefaultPay;
-  window.toggleOrgProfileNotify=toggleOrgProfileNotify; window.copyOrgProfileCode=copyOrgProfileCode; window.openOrgProfileDisplay=openOrgProfileDisplay; window.orgDefaultPay=orgDefaultPay;
+  window.copyOrgProfileCode=copyOrgProfileCode; window.pickOrgProfileTheme=pickOrgProfileTheme; window.orgDefaultPay=orgDefaultPay; window.getOrgProfile=getOrgProfile; window.renderOrgProfileHeader=renderOrgProfileHeader;
   // 團主給同事的備註：填寫（團主端）＋顯示（訂購人端）
   function saveHostNote(){ const t=TEAMS.find(x=>x.id===currentTeamId); if(!t)return; t.hostNote=document.getElementById('teamHostNote').value; updateNotePreview(); }
   function updateNotePreview(){ const p=document.getElementById('teamNotePreview'); if(!p) return; const t=(typeof TEAMS!=='undefined'&&currentTeamId)?TEAMS.find(x=>x.id===currentTeamId):null; const ta=document.getElementById('teamHostNote'); const v=(((t&&t.hostNote)||(ta&&ta.value)||'')+'').trim(); p.textContent = v || '尚未填寫'; p.classList.toggle('has', !!v); }
@@ -10585,7 +10657,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     document.getElementById('orgListView').hidden=false;
     document.getElementById('orgBack').hidden=true;
     document.getElementById('orgTitle').textContent='健美滷味 · 我的團購';
-    document.getElementById('orgSubtitle').textContent='王小明發起 · 團購主編號 '+(typeof orgCode==='function'?orgCode('王小明'):'H001')+' · 管理你的開團';
+    renderOrgProfileHeader();
     if(typeof updateOrgReplyBar==='function') updateOrgReplyBar();
     if(_cdTimer) clearInterval(_cdTimer);
     renderTeamList();
@@ -10621,6 +10693,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const ns=document.getElementById('ntStart'); ns.value=today; ns.min=today;            // 開團日期不可早於今天
     const nd=document.getElementById('ntDeadline'); nd.value=today+'T18:00'; nd.min=toLocalDt(now); // 截止不可早於現在
     const dept=document.getElementById('ntDeptOptions'); if(dept) dept.value=DEFAULT_DEPT_OPTIONS.join('、');
+    const profile=getOrgProfile();
+    const addr=document.getElementById('ntAddress'); if(addr) addr.value=profile.defaultAddress||'';
+    const contact=document.getElementById('ntContactName'); if(contact) contact.value=profile.defaultContactName||profile.name||'';
+    const phone=document.getElementById('ntContactPhone'); if(phone) phone.value=profile.defaultContactPhone||'';
     document.getElementById('newTeamModal').classList.add('show');
   }
   function closeNewTeam(){ document.getElementById('newTeamModal').classList.remove('show'); }
@@ -10635,7 +10711,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const deliverAt=document.getElementById('ntDeliver')?.value||'';
     const pickupAt=document.getElementById('ntPickup')?.value||'';
     const deptOptions=uniqueDeptOptions(deptOptionListFromText(document.getElementById('ntDeptOptions')?.value).length?deptOptionListFromText(document.getElementById('ntDeptOptions')?.value):DEFAULT_DEPT_OPTIONS);
-    const t={id:Math.random().toString(36).slice(2,8), name, start, deadline, deliverAt, pickupAt, deptOptions, open:true, orders:0, total:0, submitStatus:null, pay:orgDefaultPay()};
+    const address=(document.getElementById('ntAddress')?.value||'').trim();
+    const contactName=(document.getElementById('ntContactName')?.value||'').trim();
+    const contactPhone=(document.getElementById('ntContactPhone')?.value||'').trim();
+    const t={id:Math.random().toString(36).slice(2,8), name, start, deadline, deliverAt, pickupAt, deptOptions, address, contactName, contactPhone, open:true, orders:0, total:0, submitStatus:null, pay:orgDefaultPay()};
     TEAMS.unshift(t);
     closeNewTeam(); renderTeamList();
     toast('已開團「'+name+'」');
@@ -11554,9 +11633,16 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   /* 全站統一主題：單一鍵，三端同色，不會有色差 */
   const THEME_ALL_KEY='jm_theme_all';
   function globalTheme(){ try{ const n=localStorage.getItem(THEME_ALL_KEY); return THEME_DEF[n]?n:'truffle'; }catch(e){ return 'truffle'; } }
-  function getRoleTheme(role){ return globalTheme(); }
-  function personalTheme(){ return null; }
-  function applyScreenTheme(){ applyThemeClasses(globalTheme()); if(typeof applyScreenOcs==='function') applyScreenOcs(); }
+  function rolePersonalTheme(role){
+    try{
+      const key=role==='org'?'jm_theme_org_personal':(role==='buyer'?'jm_theme_buyer_personal':null);
+      const n=key?localStorage.getItem(key):null;
+      return THEME_DEF[n]?n:null;
+    }catch(e){ return null; }
+  }
+  function getRoleTheme(role){ return rolePersonalTheme(role)||globalTheme(); }
+  function personalTheme(){ return rolePersonalTheme(screenRole()); }
+  function applyScreenTheme(){ applyThemeClasses(personalTheme()||getRoleTheme(screenRole())); if(typeof applyScreenOcs==='function') applyScreenOcs(); }
   window.applyScreenTheme=applyScreenTheme;
   function markThemeCards(name){ name=name||globalTheme(); document.querySelectorAll('#themeCards .thc').forEach(b=>b.classList.toggle('on', b.dataset.theme===name)); }
   window.markThemeCards=markThemeCards;
@@ -11586,8 +11672,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function closeThemePicker(){ const m=document.getElementById('themePickModal'); if(m) m.hidden=true; }
   function pickPersonalTheme(name){
     if(!THEME_DEF[name]) return;
-    const key=screenRole()==='buyer'?'jm_theme_buyer_personal':'jm_theme_org_personal';
-    try{ localStorage.setItem(key,name); }catch(e){}
+    const role=screenRole();
+    try{
+      if(role==='org'){ localStorage.setItem('jm_theme_org_personal',name); localStorage.setItem('jm_theme_buyer_personal',name); }
+      else { localStorage.setItem(role==='buyer'?'jm_theme_buyer_personal':'jm_theme_org_personal',name); }
+    }catch(e){}
     applyThemeClasses(name); closeThemePicker();
     if(typeof toast==='function') toast('已套用色彩：'+THEME_DEF[name].label);
   }
