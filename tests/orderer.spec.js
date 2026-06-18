@@ -114,7 +114,8 @@ async function expectReachableControls(page, roots, options = {}) {
       const top = document.elementFromPoint(cx, cy);
       const topControl = top && top.closest ? top.closest(controlSelector) : null;
       const fixedBottomBlocker = top && top.closest ? top.closest('#orgPnav,#orgFoot') : null;
-      if (fixedBottomBlocker && !fixedBottomBlocker.contains(element)) return [];
+      const inModal = !!element.closest('.ord-modal,.date-modal,.set-modal,.style-modal,.theme-pick-modal,.status-modal');
+      if (fixedBottomBlocker && !fixedBottomBlocker.contains(element) && !inModal) return [];
       const covered = !(top && (element === top || element.contains(top) || topControl === element));
       const tooSmall = rect.width < minSize || rect.height < minSize;
       const reasons = [];
@@ -522,6 +523,50 @@ test.describe('orderer page automation', () => {
     expect(issues).toEqual([]);
   });
 
+  test('organizer edit order modal footer stays reachable after scrolling', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    await openApp(page);
+    await openOrganizerDetail(page);
+
+    const secondCard = page.locator('#orgPeople .person-card').nth(1);
+    await secondCard.locator('.person-h').click();
+    await expect(secondCard.locator('.person-ops')).toBeVisible();
+    await secondCard.locator('.person-edit').click();
+    await expect(page.locator('#proxyModal.show')).toBeVisible();
+
+    await page.locator('#proxyModal .ord-modal-body').evaluate(element => {
+      element.scrollTop = element.scrollHeight;
+    });
+    await page.waitForTimeout(100);
+
+    await expectReachableControls(page, ['#proxyModal .ord-modal-foot']);
+    const modalFooterLayer = await page.evaluate(() => {
+      const modal = document.querySelector('#proxyModal');
+      const save = document.querySelector('#pxSaveBtn');
+      const foot = document.querySelector('#orgFoot');
+      const nav = document.querySelector('#orgPnav');
+      if (!modal || !save) return { saveClickable: false, modalAboveFoot: false, modalAboveNav: false };
+      const rect = save.getBoundingClientRect();
+      const top = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      const modalZ = Number(getComputedStyle(modal).zIndex) || 0;
+      const footZ = foot ? Number(getComputedStyle(foot).zIndex) || 0 : 0;
+      const navZ = nav ? Number(getComputedStyle(nav).zIndex) || 0 : 0;
+      return {
+        saveClickable: !!top && (save === top || save.contains(top)),
+        modalAboveFoot: modalZ > footZ,
+        modalAboveNav: modalZ > navZ,
+      };
+    });
+    expect(modalFooterLayer.saveClickable).toBe(true);
+    expect(modalFooterLayer.modalAboveFoot).toBe(true);
+    expect(modalFooterLayer.modalAboveNav).toBe(true);
+
+    await page.screenshot({ path: testInfo.outputPath('organizer-edit-modal-footer-reachable.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
   test('organizer visible controls stay reachable across common viewports', async ({ page }, testInfo) => {
     const issues = collectPageIssues(page);
     const viewports = [
@@ -547,7 +592,11 @@ test.describe('orderer page automation', () => {
 
       await page.locator('#orgPeopleAdd').click();
       await expect(page.locator('#proxyModal.show')).toBeVisible();
-      await expectReachableControls(page, ['#proxyModal']);
+      await expectReachableControls(page, [
+        '#proxyModal .ord-modal-h',
+        '#pxMenuTabs',
+        '#proxyModal .ord-modal-foot',
+      ]);
       await page.evaluate(() => window.closeProxyOrder());
 
       if (viewport.width < 1180) {
