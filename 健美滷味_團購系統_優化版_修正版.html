@@ -3685,9 +3685,11 @@
     .org-chat.open{display:flex;width:min(420px,92vw);z-index:170}
     .org-chat.open .oc-x{display:flex}
   }
-  @media(max-width:767px){
+  @media(max-width:899px){
     body[data-screen="organizer"] #orgPnav{z-index:190}
-    .org-chat.open{width:100vw}
+    .org-chat.open{left:0;right:0;width:auto;max-width:none;border-left:none}
+    body.org-chat-open[data-screen="organizer"] #orgPnav .pnav-cta{display:none}
+    body.org-chat-open[data-screen="organizer"] #orgPnav .pnav-tab{flex:1}
   }
   .cd-empty{margin:auto;text-align:center;color:var(--mute);font-size:13px;line-height:1.8}
   .cd-foot{display:flex;gap:8px;align-items:flex-end;padding:11px 12px;border-top:1px solid var(--edge);background:var(--bg-1)}
@@ -5928,7 +5930,7 @@
 
   <!-- 高級底部導覽列（團購人・iPad＋手機）-->
   <nav class="pnav" id="orgPnav" aria-label="團購導覽">
-    <button type="button" class="pnav-tab on" id="orgTabList" onclick="backToTeamList()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 6h16M4 12h16M4 18h16"/></svg>我的團</button>
+    <button type="button" class="pnav-tab on" id="orgTabList" onclick="orgTabListAction()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 6h16M4 12h16M4 18h16"/></svg>我的團</button>
     <button type="button" class="pnav-tab" id="orgTabChat" onclick="openOrgChat()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 11.5a8.4 8.4 0 01-9 8.4 9.6 9.6 0 01-3-.5L3 21l1.6-4a8.4 8.4 0 01-1-4 8.4 8.4 0 018.4-8.4A8.4 8.4 0 0121 11.5z"/></svg>聊天<span class="pnav-badge" id="orgNavChatBadge">0</span></button>
     <button type="button" class="pnav-cta" id="orgPnavCta" onclick="orgPnavAction()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span id="orgPnavCtaLabel">開新團</span></button>
   </nav>
@@ -6826,8 +6828,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function renderOrgChat(){ const body=document.getElementById('ocBody'); if(!body)return; renderOcTabs(); const sub=document.getElementById('ocSub'); if(!ocTeam){ if(sub)sub.textContent='選擇團購單'; body.innerHTML='<div class="cd-empty">選擇上方團購單，開始與店家對話</div>'; return; } const m=chatMeta(ocTeam); if(sub)sub.textContent=m.name+' · #'+ocTeam; body.innerHTML=chatBubbles(ocTeam,'org'); body.scrollTop=body.scrollHeight; }
   function selectOcTeam(id){ if(!id)return; ocTeam=id; (MESSAGES[id]||[]).forEach(m=>{ if(m.from!=='org') m._seen=true; }); renderOrgChat(); refreshChatBadges(); }
   function initOrgChat(){ const l=ocTeamList(); if(!ocTeam||!l.some(t=>t.id===ocTeam)){ ocTeam='_general'; } fillStickerBar('ocEmoji','org'); renderOrgChat(); refreshChatBadges(); }
-  function openOrgChat(id){ if(id) ocTeam=id; if(!ocTeam) initOrgChat(); if(ocTeam)(MESSAGES[ocTeam]||[]).forEach(m=>{ if(m.from!=='org') m._seen=true; }); fillStickerBar('ocEmoji','org'); renderOrgChat(); const p=document.getElementById('orgChat'); if(p)p.classList.add('open'); document.body.classList.add('org-chat-open'); refreshChatBadges(); setTimeout(()=>{ const b=document.getElementById('ocBody'); if(b)b.scrollTop=b.scrollHeight; const i=document.getElementById('ocInput'); if(i&&window.innerWidth>=980)i.focus(); },40); }
-  function closeOrgChat(){ const p=document.getElementById('orgChat'); if(p)p.classList.remove('open'); document.body.classList.remove('org-chat-open'); }
+  function openOrgChat(id){ if(id) ocTeam=id; if(!ocTeam) initOrgChat(); if(ocTeam)(MESSAGES[ocTeam]||[]).forEach(m=>{ if(m.from!=='org') m._seen=true; }); fillStickerBar('ocEmoji','org'); renderOrgChat(); const p=document.getElementById('orgChat'); if(p)p.classList.add('open'); document.body.classList.add('org-chat-open'); refreshChatBadges(); if(typeof updateOrgNav==='function') updateOrgNav(); setTimeout(()=>{ const b=document.getElementById('ocBody'); if(b)b.scrollTop=b.scrollHeight; const i=document.getElementById('ocInput'); if(i&&window.innerWidth>=980)i.focus(); },40); }
+  function closeOrgChat(){ const p=document.getElementById('orgChat'); if(p)p.classList.remove('open'); document.body.classList.remove('org-chat-open'); if(typeof updateOrgNav==='function') updateOrgNav(); }
   function sendOrgChat(){ const i=document.getElementById('ocInput'); if(!i)return; const t=i.value.trim(); if(!t||!ocTeam)return; if(!MESSAGES[ocTeam])MESSAGES[ocTeam]=[]; MESSAGES[ocTeam].push({from:'org',text:t,ts:Date.now(),_seen:true}); i.value=''; cdAutoGrow(i); renderOrgChat(); refreshChatBadges(); if(typeof renderChatList==='function')renderChatList(); if(typeof renderChatRoom==='function')renderChatRoom(); }
   function ocKey(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendOrgChat(); } }
   window.openOrgChat=openOrgChat; window.closeOrgChat=closeOrgChat; window.selectOcTeam=selectOcTeam; window.sendOrgChat=sendOrgChat; window.ocKey=ocKey; window.renderOrgChat=renderOrgChat; window.renderOcTabs=renderOcTabs; window.initOrgChat=initOrgChat;
@@ -10374,16 +10376,22 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function updateOrgNav(){
     const d=document.getElementById('orgDetailView'); const inDetail = !!(d && !d.hidden);
     const lbl=document.getElementById('orgPnavCtaLabel'); if(lbl) lbl.textContent = inDetail ? '新增訂單' : '開新團';
-    const tl=document.getElementById('orgTabList'); if(tl) tl.classList.toggle('on', !inDetail);
+    const chatOpen=document.body.classList.contains('org-chat-open');
+    const tl=document.getElementById('orgTabList'); if(tl) tl.classList.toggle('on', !chatOpen && !inDetail);
+    const tc=document.getElementById('orgTabChat'); if(tc) tc.classList.toggle('on', chatOpen);
     let tot=0; if(typeof TEAMS!=='undefined' && typeof chatUnread==='function'){ TEAMS.forEach(t=>{ tot+=chatUnread(t.id,'org'); }); }
     const b=document.getElementById('orgNavChatBadge'); if(b){ b.textContent=tot; b.classList.toggle('show',tot>0); }
+  }
+  function orgTabListAction(){
+    if(typeof closeOrgChat==='function') closeOrgChat();
+    if(typeof updateOrgNav==='function') updateOrgNav();
   }
   function orgPnavAction(){
     const d=document.getElementById('orgDetailView');
     if(d && !d.hidden){ if(typeof openProxyOrder==='function') openProxyOrder(); }
     else { if(typeof openNewTeam==='function') openNewTeam(); }
   }
-  window.updateOrgNav=updateOrgNav; window.orgPnavAction=orgPnavAction;
+  window.updateOrgNav=updateOrgNav; window.orgTabListAction=orgTabListAction; window.orgPnavAction=orgPnavAction;
   // 開新團
   function openNewTeam(){
     const openCount=TEAMS.filter(t=>t.open).length;

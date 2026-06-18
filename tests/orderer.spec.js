@@ -397,6 +397,47 @@ test.describe('orderer page automation', () => {
     expect(issues).toEqual([]);
   });
 
+  test('organizer tablet portrait uses full-page chat and returns to current team', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 768, height: 1024 });
+
+    await openApp(page);
+    await openOrganizerDetail(page);
+    const teamTitle = (await page.locator('#orgTitle').innerText()).trim();
+
+    await expect(page.locator('#orgPnav')).toBeVisible();
+    await page.locator('#orgTabChat').click();
+    await expect(page.locator('#orgChat.open')).toBeVisible();
+    const tabletChat = await page.locator('#orgChat').evaluate(element => {
+      const rect = element.getBoundingClientRect();
+      const nav = document.querySelector('#orgPnav')?.getBoundingClientRect();
+      const navCenter = nav ? document.elementFromPoint(nav.left + nav.width / 2, nav.top + nav.height / 2) : null;
+      const cta = document.querySelector('#orgPnavCta');
+      return {
+        fillsWidth: Math.abs(rect.left) <= 2 && Math.abs(rect.width - window.innerWidth) <= 2,
+        leavesNavVisible: !!nav && rect.bottom <= nav.top + 1,
+        navOnTop: !!navCenter && !!document.querySelector('#orgPnav')?.contains(navCenter),
+        ctaHidden: !!cta && getComputedStyle(cta).display === 'none',
+        drawerHalfSplit: rect.width < window.innerWidth * 0.96,
+      };
+    });
+    expect(tabletChat.fillsWidth).toBe(true);
+    expect(tabletChat.leavesNavVisible).toBe(true);
+    expect(tabletChat.navOnTop).toBe(true);
+    expect(tabletChat.ctaHidden).toBe(true);
+    expect(tabletChat.drawerHalfSplit).toBe(false);
+    await page.screenshot({ path: testInfo.outputPath('organizer-tablet-portrait-chat-open.png'), fullPage: false });
+
+    await page.locator('#orgTabList').click();
+    await expect(page.locator('#orgChat.open')).toHaveCount(0);
+    await expect(page.locator('#organizer.active #orgDetailView')).toBeVisible();
+    await expect(page.locator('#organizer.active #orgListView')).toBeHidden();
+    await expect(page.locator('#orgTitle')).toHaveText(teamTitle);
+
+    await page.screenshot({ path: testInfo.outputPath('organizer-tablet-portrait-full-chat.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
   test('organizer detail uses compact bottom submit summary and add-order action on mobile', async ({ page }, testInfo) => {
     const issues = collectPageIssues(page);
     await page.setViewportSize({ width: 390, height: 844 });
