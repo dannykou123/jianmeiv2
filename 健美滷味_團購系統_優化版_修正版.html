@@ -2793,7 +2793,7 @@
   .team-mng:hover{color:var(--ink);border-color:var(--edge-hi)}
   .team-mng.pause.on{color:var(--gold);border-color:var(--gold)}
   /* 開團狀態：醒目大按鈕 + 下拉狀態選單（重點操作）*/
-  .team-status-btn{display:inline-flex;align-items:center;gap:8px;background:none;border:none;border-radius:0;padding:2px 0;cursor:pointer;font-family:inherit;transition:.2s}
+  .team-status-btn{display:inline-flex;align-items:center;gap:8px;min-height:36px;background:none;border:none;border-radius:999px;padding:6px 8px;cursor:pointer;font-family:inherit;transition:.2s}
   .team-status-btn:hover .tsb-chev{stroke:var(--gold)}
   .team-status-btn .tsb-chev{transition:.2s}
   .team-status-btn:active{transform:scale(.97)}
@@ -3191,7 +3191,7 @@
   .ord-modal-box{background:var(--bg-1);width:100%;max-width:560px;border-radius:22px 22px 0 0;max-height:84vh;display:flex;flex-direction:column;animation:cartUp .3s cubic-bezier(.34,1.4,.64,1)}
   @keyframes cartUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
   .ord-modal-h{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--edge);font-family:'Noto Serif TC',serif;font-weight:700;font-size:18px}
-  .ord-modal-h button{background:none;border:none;color:var(--sub);font-size:26px;cursor:pointer;line-height:1}
+  .ord-modal-h button{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:var(--sub);font-size:26px;cursor:pointer;line-height:1;border-radius:10px;flex-shrink:0}
   .ord-modal-body{flex:1;overflow-y:auto;padding:8px 22px}
   .ord-confirm-note{margin:12px 22px 2px;color:var(--sub);font-size:13px;line-height:1.55}
   .cart-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--edge)}
@@ -3282,7 +3282,8 @@
   .dept-group-h .dg-meta{margin-left:auto;color:var(--sub);font-size:12px;font-weight:700;white-space:nowrap}
   .dept-group .person-card{margin-top:10px}
   /* 依訂購人：每人一張卡 */
-  .person-card{background:var(--card);border:1px solid var(--edge);border-radius:16px;padding:11px 13px;margin-top:10px}
+  .person-card{position:relative;z-index:0;background:var(--card);border:1px solid var(--edge);border-radius:16px;padding:11px 13px;margin-top:10px}
+  .person-card.open{z-index:3}
   .person-h{display:flex;align-items:center;gap:10px;cursor:pointer}
   .pc-chev{margin-left:2px;color:var(--mute);transition:transform .3s;flex-shrink:0;width:18px;height:18px}
   .person-card.open .pc-chev{transform:rotate(180deg)}
@@ -3672,7 +3673,7 @@
   .oc-foot .cd-send{width:42px;height:42px;flex-shrink:0;border:none;border-radius:12px;background:var(--rose);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
   .oc-foot .cd-send svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   body[data-screen="organizer"] .date-modal{z-index:220}
-  body[data-screen="organizer"]:has(.date-modal.show) #organizer{z-index:230}
+  body[data-screen="organizer"]:has(#organizer .date-modal.show) #organizer{z-index:230}
   @media(min-width:1180px){
     body[data-screen="organizer"] .org-chat{display:flex}
     body[data-screen="organizer"] .org-chat-fab{display:none}
@@ -3685,7 +3686,7 @@
   }
   @media(max-width:767px){
     body[data-screen="organizer"] #orgPnav{z-index:190}
-    .org-chat.open{width:100vw;bottom:calc(74px + env(safe-area-inset-bottom))}
+    .org-chat.open{width:100vw}
   }
   .cd-empty{margin:auto;text-align:center;color:var(--mute);font-size:13px;line-height:1.8}
   .cd-foot{display:flex;gap:8px;align-items:flex-end;padding:11px 12px;border-top:1px solid var(--edge);background:var(--bg-1)}
@@ -4760,6 +4761,7 @@
     #orgPnav{display:flex}
     body[data-screen="organizer"] .org-wrap{padding-bottom:176px}
     body[data-screen="organizer"] .org-foot{bottom:calc(74px + env(safe-area-inset-bottom));padding:8px 12px 10px;background:linear-gradient(0deg,color-mix(in srgb,var(--bg-0) 78%,transparent) 70%,transparent)}
+    body[data-screen="organizer"] .org-chat.open{bottom:calc(74px + env(safe-area-inset-bottom))}
     body.org-chat-open[data-screen="organizer"] .org-foot{display:none!important}
   }
   /* 指定舊檔字級設定覆蓋：以最後規則為準，避免前方歷史樣式固定 px 擋住設定 */

@@ -77,6 +77,56 @@ async function productGridColumnCount(page) {
   });
 }
 
+async function expectReachableControls(page, roots, options = {}) {
+  const issues = await page.evaluate(({ roots, minSize }) => {
+    const controlSelector = 'button:not([disabled]),a[href],[role="button"],[onclick]';
+    const rootElements = roots
+      .flatMap(selector => Array.from(document.querySelectorAll(selector)))
+      .filter(Boolean);
+    const controls = Array.from(new Set(rootElements.flatMap(root => Array.from(root.querySelectorAll(controlSelector)))));
+
+    function isActuallyVisible(element) {
+      if (element.tagName === 'BUTTON' && element.disabled) return false;
+      if (element.hidden || element.closest('[hidden]')) return false;
+      const style = getComputedStyle(element);
+      if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) === 0) return false;
+      const rect = element.getBoundingClientRect();
+      if (rect.width < 1 || rect.height < 1) return false;
+      if (rect.right <= 0 || rect.bottom <= 0 || rect.left >= innerWidth || rect.top >= innerHeight) return false;
+      return true;
+    }
+
+    function label(element) {
+      if (!element) return 'nothing';
+      if (element.id) return `#${element.id}`;
+      const cls = element.className && typeof element.className === 'string'
+        ? `.${element.className.trim().split(/\s+/).slice(0, 2).join('.')}`
+        : element.tagName.toLowerCase();
+      const text = (element.textContent || element.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim();
+      return `${cls}${text ? ` "${text.slice(0, 28)}"` : ''}`;
+    }
+
+    return controls.flatMap(element => {
+      if (!isActuallyVisible(element)) return [];
+      const rect = element.getBoundingClientRect();
+      const cx = Math.min(Math.max(rect.left + rect.width / 2, 1), innerWidth - 1);
+      const cy = Math.min(Math.max(rect.top + rect.height / 2, 1), innerHeight - 1);
+      const top = document.elementFromPoint(cx, cy);
+      const topControl = top && top.closest ? top.closest(controlSelector) : null;
+      const fixedBottomBlocker = top && top.closest ? top.closest('#orgPnav,#orgFoot') : null;
+      if (fixedBottomBlocker && !fixedBottomBlocker.contains(element)) return [];
+      const covered = !(top && (element === top || element.contains(top) || topControl === element));
+      const tooSmall = rect.width < minSize || rect.height < minSize;
+      const reasons = [];
+      if (covered) reasons.push(`covered by ${label(top)}`);
+      if (tooSmall) reasons.push(`small ${Math.round(rect.width)}x${Math.round(rect.height)}`);
+      return reasons.length ? [`${label(element)}: ${reasons.join(', ')}`] : [];
+    });
+  }, { roots, minSize: options.minSize || 28 });
+
+  expect(issues).toEqual([]);
+}
+
 async function addFirstProductAndSubmit(page, name) {
   await page.locator('#ordName').fill(name);
   await page.locator('#orderer.active #ordMenu .ordx-card').first().click();
@@ -427,6 +477,89 @@ test.describe('orderer page automation', () => {
     await expect(page.locator('#proxyModal.show')).toBeVisible();
 
     await page.screenshot({ path: testInfo.outputPath('organizer-people-toolbar.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
+  test('organizer remove confirmation stays above expanded member card', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    await openApp(page);
+    await openOrganizerDetail(page);
+
+    const secondCard = page.locator('#orgPeople .person-card').nth(1);
+    await secondCard.locator('.person-h').click();
+    await expect(secondCard.locator('.person-ops')).toBeVisible();
+    await secondCard.locator('.person-del-btn').click();
+    await expect(page.locator('#uiConfirmModal.show')).toBeVisible();
+
+    await expectReachableControls(page, ['#uiConfirmModal']);
+    const modalLayer = await page.evaluate(() => {
+      const modal = document.querySelector('#uiConfirmModal');
+      const box = modal?.querySelector('.ui-dialog-box');
+      const ok = document.querySelector('#uiConfirmOk');
+      const card = document.querySelector('#orgPeople .person-card.open');
+      if (!modal || !box || !ok || !card) {
+        return { modalAboveOrganizer: false, okClickable: false, boxOnTop: false };
+      }
+      const okRect = ok.getBoundingClientRect();
+      const boxRect = box.getBoundingClientRect();
+      const okTop = document.elementFromPoint(okRect.left + okRect.width / 2, okRect.top + okRect.height / 2);
+      const boxTop = document.elementFromPoint(boxRect.left + boxRect.width / 2, boxRect.top + boxRect.height / 2);
+      const modalZ = Number(getComputedStyle(modal).zIndex) || 0;
+      const organizerZ = Number(getComputedStyle(document.querySelector('#organizer')).zIndex) || 0;
+      return {
+        modalAboveOrganizer: modalZ > organizerZ,
+        okClickable: !!okTop && (ok === okTop || ok.contains(okTop)),
+        boxOnTop: !!boxTop && (box === boxTop || box.contains(boxTop)),
+      };
+    });
+    expect(modalLayer.modalAboveOrganizer).toBe(true);
+    expect(modalLayer.okClickable).toBe(true);
+    expect(modalLayer.boxOnTop).toBe(true);
+
+    await page.screenshot({ path: testInfo.outputPath('organizer-remove-confirm-on-top.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
+  test('organizer visible controls stay reachable across common viewports', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    const viewports = [
+      { name: 'mobile', width: 390, height: 844 },
+      { name: 'tablet', width: 768, height: 1024 },
+      { name: 'laptop', width: 1024, height: 768 },
+      { name: 'desktop', width: 1440, height: 900 },
+    ];
+
+    for (const viewport of viewports) {
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await openOrganizerList(page);
+      await expectReachableControls(page, ['#organizer.active', '#orgPnav']);
+
+      await openOrganizerDetail(page);
+      await expectReachableControls(page, ['#organizer.active', '#orgPnav', '#orgFoot']);
+
+      const firstCard = page.locator('#orgPeople .person-card').first();
+      await firstCard.locator('.person-h').click();
+      await expect(firstCard.locator('.person-ops')).toBeVisible();
+      await page.waitForTimeout(420);
+      await expectReachableControls(page, ['#organizer.active', '#orgPnav', '#orgFoot']);
+
+      await page.locator('#orgPeopleAdd').click();
+      await expect(page.locator('#proxyModal.show')).toBeVisible();
+      await expectReachableControls(page, ['#proxyModal']);
+      await page.evaluate(() => window.closeProxyOrder());
+
+      if (viewport.width < 1180) {
+        await page.locator('#orgTabChat').click();
+        await expect(page.locator('#orgChat.open')).toBeVisible();
+        await expectReachableControls(page, ['#orgChat', '#orgPnav']);
+        await page.locator('#orgChat .oc-x').click();
+        await expect(page.locator('#orgChat.open')).toHaveCount(0);
+      }
+    }
+
+    await page.screenshot({ path: testInfo.outputPath('organizer-controls-reachable.png'), fullPage: false });
     expect(issues).toEqual([]);
   });
 
