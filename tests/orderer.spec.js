@@ -57,6 +57,12 @@ async function openOrganizer(page) {
   await expect(page.locator('#organizer.active #orgPeople')).toBeVisible();
 }
 
+async function openOrganizerList(page) {
+  await openApp(page);
+  await goScreen(page, 'organizer');
+  await expect(page.locator('#organizer.active #teamList .tcard').first()).toBeVisible();
+}
+
 async function openOrganizerDetail(page) {
   await goScreen(page, 'organizer');
   await page.locator('#teamList .tcard').first().click();
@@ -197,6 +203,133 @@ test.describe('orderer page automation', () => {
     await expect(await productGridColumnCount(page)).toBe(1);
     await expect(page.locator('#ordPnav')).toBeVisible();
     await page.screenshot({ path: testInfo.outputPath('orderer-mobile.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
+  test('organizer laptop opens chat as drawer and keeps modals above it', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 1024, height: 768 });
+
+    await openOrganizerList(page);
+
+    const initialLayout = await page.evaluate(() => {
+      const chat = document.querySelector('#orgChat');
+      const list = document.querySelector('#organizer.active #orgListView');
+      const pnav = document.querySelector('#organizer.active #orgPnav');
+      if (!chat || !list || !pnav) return { chatHidden: false, listFits: false, pnavVisible: false };
+      const chatRect = chat.getBoundingClientRect();
+      const listRect = list.getBoundingClientRect();
+      const pnavRect = pnav.getBoundingClientRect();
+      return {
+        chatHidden: getComputedStyle(chat).display === 'none' || chatRect.width === 0,
+        listFits: listRect.right <= window.innerWidth,
+        pnavVisible: getComputedStyle(pnav).display !== 'none' && pnavRect.height > 0
+      };
+    });
+    expect(initialLayout.chatHidden).toBe(true);
+    expect(initialLayout.listFits).toBe(true);
+    expect(initialLayout.pnavVisible).toBe(true);
+
+    await page.locator('#orgTabChat').click();
+    await expect(page.locator('#orgChat.open')).toBeVisible();
+    await expect(page.locator('#orgChat .oc-x')).toBeVisible();
+    const drawerLayout = await page.locator('#orgChat').evaluate(element => {
+      const rect = element.getBoundingClientRect();
+      return {
+        rightAligned: Math.abs(window.innerWidth - rect.right) <= 2,
+        drawerWidth: Math.round(rect.width),
+        notFullscreen: rect.width < window.innerWidth
+      };
+    });
+    expect(drawerLayout.rightAligned).toBe(true);
+    expect(drawerLayout.drawerWidth).toBeGreaterThanOrEqual(360);
+    expect(drawerLayout.notFullscreen).toBe(true);
+
+    await page.locator('#orgChat .oc-x').click();
+    await expect(page.locator('#orgChat.open')).toHaveCount(0);
+
+    await page.locator('#teamList .tcard').first().click();
+    await expect(page.locator('#organizer.active #orgDetailView')).toBeVisible();
+    await page.locator('#orgTabChat').click();
+    await expect(page.locator('#orgChat.open')).toBeVisible();
+    await page.evaluate(() => window.openLineShare());
+    await expect(page.locator('#lineModal.show')).toBeVisible();
+    const modalLayer = await page.evaluate(() => {
+      const modal = document.querySelector('#lineModal');
+      const chat = document.querySelector('#orgChat');
+      const box = modal?.querySelector('.date-box');
+      if (!modal || !chat || !box) return { modalAboveChat: false, modalNotCovered: false };
+      const chatRect = chat.getBoundingClientRect();
+      const boxRect = box.getBoundingClientRect();
+      const overlapLeft = Math.max(chatRect.left, boxRect.left);
+      const overlapRight = Math.min(chatRect.right, boxRect.right);
+      const overlapTop = Math.max(chatRect.top, boxRect.top);
+      const overlapBottom = Math.min(chatRect.bottom, boxRect.bottom);
+      const hasOverlap = overlapLeft < overlapRight && overlapTop < overlapBottom;
+      let modalNotCovered = true;
+      if (hasOverlap) {
+        const topElement = document.elementFromPoint(overlapLeft + 8, overlapTop + 8);
+        modalNotCovered = !!topElement && modal.contains(topElement);
+      }
+      return {
+        modalAboveChat: Number(getComputedStyle(modal).zIndex) > Number(getComputedStyle(chat).zIndex),
+        modalNotCovered
+      };
+    });
+    expect(modalLayer.modalAboveChat).toBe(true);
+    expect(modalLayer.modalNotCovered).toBe(true);
+
+    await page.screenshot({ path: testInfo.outputPath('organizer-laptop-chat-drawer.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
+  test('organizer desktop keeps chat docked beside team list', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+
+    await openOrganizerList(page);
+
+    const desktopLayout = await page.evaluate(() => {
+      const chat = document.querySelector('#orgChat');
+      const list = document.querySelector('#organizer.active #orgListView');
+      const headChat = document.querySelector('#organizer.active .org-head-chat');
+      if (!chat || !list || !headChat) return { chatDocked: false, listAvoidsChat: false, headChatHidden: false };
+      const chatRect = chat.getBoundingClientRect();
+      const listRect = list.getBoundingClientRect();
+      return {
+        chatDocked: getComputedStyle(chat).display !== 'none' && Math.abs(window.innerWidth - chatRect.right) <= 2,
+        listAvoidsChat: listRect.right <= chatRect.left - 12,
+        headChatHidden: getComputedStyle(headChat).display === 'none'
+      };
+    });
+    expect(desktopLayout.chatDocked).toBe(true);
+    expect(desktopLayout.listAvoidsChat).toBe(true);
+    expect(desktopLayout.headChatHidden).toBe(true);
+
+    await page.screenshot({ path: testInfo.outputPath('organizer-desktop-docked-chat.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
+  test('organizer mobile chat opens fullscreen from bottom navigation', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    await openOrganizerList(page);
+
+    await expect(page.locator('#orgPnav')).toBeVisible();
+    await expect(page.locator('#orgChat')).toBeHidden();
+    await page.locator('#orgTabChat').click();
+    await expect(page.locator('#orgChat.open')).toBeVisible();
+    await expect(page.locator('#orgChat .oc-x')).toBeVisible();
+    const mobileChat = await page.locator('#orgChat').evaluate(element => {
+      const rect = element.getBoundingClientRect();
+      return {
+        fillsViewport: Math.abs(rect.width - window.innerWidth) <= 2 && Math.abs(rect.height - window.innerHeight) <= 2
+      };
+    });
+    expect(mobileChat.fillsViewport).toBe(true);
+
+    await page.screenshot({ path: testInfo.outputPath('organizer-mobile-chat.png'), fullPage: false });
     expect(issues).toEqual([]);
   });
 
