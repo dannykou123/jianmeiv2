@@ -333,6 +333,87 @@ test.describe('orderer page automation', () => {
     expect(issues).toEqual([]);
   });
 
+  test('organizer detail uses top submit action and bottom add-order action on mobile', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    await openApp(page);
+    await openOrganizerDetail(page);
+
+    await expect(page.locator('#orgPnav')).toBeVisible();
+    await expect(page.locator('#orgPnavCtaLabel')).toHaveText('新增訂單');
+    await expect(page.locator('#orgHeroSubmit')).toBeVisible();
+
+    await page.locator('#orgPnavCta').click();
+    await expect(page.locator('#proxyModal.show')).toBeVisible();
+    await expect(page.locator('#submitModal.show')).toHaveCount(0);
+    await page.evaluate(() => window.closeProxyOrder());
+
+    await page.locator('#orgHeroSubmit').click();
+    await expect(page.locator('#submitModal.show')).toBeVisible();
+
+    await page.screenshot({ path: testInfo.outputPath('organizer-mobile-actions.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
+  test('organizer detail keeps add order in the people toolbar on desktop', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 1024, height: 768 });
+
+    await openApp(page);
+    await openOrganizerDetail(page);
+
+    await expect(page.locator('#orgPeopleTools')).toBeVisible();
+    await expect(page.locator('#orgPeopleAdd')).toBeVisible();
+    const toolbarLayout = await page.evaluate(() => {
+      const toolbar = document.querySelector('#orgPeopleTools');
+      const add = document.querySelector('#orgPeopleAdd');
+      const group = document.querySelector('#orgPeople .dept-group');
+      if (!toolbar || !add || !group) return { addOnRight: false, toolbarAligned: false };
+      const toolbarRect = toolbar.getBoundingClientRect();
+      const addRect = add.getBoundingClientRect();
+      const groupRect = group.getBoundingClientRect();
+      return {
+        addOnRight: addRect.left > toolbarRect.left + toolbarRect.width / 2,
+        toolbarAligned: Math.abs(toolbarRect.left - groupRect.left) <= 2 && Math.abs(toolbarRect.right - groupRect.right) <= 2
+      };
+    });
+    expect(toolbarLayout.addOnRight).toBe(true);
+    expect(toolbarLayout.toolbarAligned).toBe(true);
+
+    await page.locator('#orgPeopleAdd').click();
+    await expect(page.locator('#proxyModal.show')).toBeVisible();
+
+    await page.screenshot({ path: testInfo.outputPath('organizer-people-toolbar.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
+  test('organizer person cards prioritize notes and keep items collapsed', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 1024, height: 768 });
+
+    await openApp(page);
+    await openOrganizerDetail(page);
+    await page.evaluate(() => {
+      window.eval("ORDERS[0].note='下午 3 點前請先收款'; renderPeople();");
+    });
+
+    const firstCard = page.locator('#orgPeople .person-card').first();
+    await expect(firstCard.locator('.person-note-preview')).toBeVisible();
+    await expect(firstCard.locator('.person-note-preview')).toContainText('下午 3 點前請先收款');
+    await expect(firstCard.locator('.person-items')).toBeHidden();
+    const collapsedSummary = await firstCard.locator('.person-summary').innerText();
+    expect(collapsedSummary).not.toContain('大綜合');
+
+    await firstCard.locator('.person-h').click();
+    await expect(firstCard.locator('.person-items')).toBeVisible();
+    await expect(firstCard.locator('.person-tag').first()).toBeVisible();
+    await expect(firstCard.locator('.person-note-preview')).toBeVisible();
+
+    await page.screenshot({ path: testInfo.outputPath('organizer-note-priority.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
   test('preset department order is grouped in organizer view', async ({ page }, testInfo) => {
     const issues = collectPageIssues(page);
     await page.setViewportSize({ width: 1440, height: 900 });

@@ -3288,6 +3288,7 @@
   .person-card.open .pc-chev{transform:rotate(180deg)}
   .person-acc{max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.4,0,.2,1)}
   .person-card.open .person-acc{max-height:600px}
+  .person-card:not(.open) .person-items,.person-card:not(.open) .person-ops{display:none}
   .person-av{width:42px;height:42px;border-radius:13px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Noto Serif TC',serif;font-weight:900;font-size:18px;color:var(--gold);background:color-mix(in srgb,var(--gold) 13%,var(--bg-1));border:1px solid color-mix(in srgb,var(--gold) 28%,transparent);position:relative}
   .person-av.paid::after{content:"";position:absolute;right:-3px;bottom:-3px;width:16px;height:16px;border-radius:50%;background:var(--green);border:2.5px solid var(--card);background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>');background-size:9px;background-repeat:no-repeat;background-position:center}
   .person-mid{flex:1;min-width:0}
@@ -3296,6 +3297,10 @@
   .person-nm{font-weight:700;font-size:16px}
   .person-dept{font-size:13px;color:var(--mute)}
   .person-amt{margin-left:auto;font-family:'Noto Serif TC',serif;font-weight:900;font-size:18px;color:var(--gold)}
+  .person-status-line{display:flex;align-items:center;gap:7px;margin-top:4px;flex-wrap:wrap}
+  .person-status-line .paid-badge,.person-status-line .unpaid-badge{margin-left:0}
+  .person-note-preview{display:flex;align-items:flex-start;gap:6px;margin-top:7px;padding:7px 9px;background:color-mix(in srgb,var(--gold) 8%,var(--card));border:1px solid color-mix(in srgb,var(--gold) 20%,var(--edge));border-radius:9px;font-size:12.5px;color:var(--ink);line-height:1.45;overflow-wrap:anywhere}
+  .person-note-preview .ico{width:14px;height:14px;flex-shrink:0;margin-top:1px;color:var(--gold);fill:none;stroke:currentColor;stroke-width:1.8}
   .person-items{margin-top:10px;padding-top:10px;border-top:1px solid color-mix(in srgb,var(--edge) 55%,transparent);display:flex;flex-wrap:wrap;gap:6px}
   .person-tag{font-size:13px;background:var(--pill-bg);border:1px solid var(--edge);border-radius:8px;padding:4px 10px;color:var(--sub)}
   .person-del{margin-top:10px}
@@ -3358,6 +3363,10 @@
   /* 團主操作列（代客下單 / 列印 A4）統一寬度 */
   .org-actions{display:flex;gap:10px;padding:14px 20px 0}
   .org-quick{display:flex;gap:10px;margin:14px 20px 6px;justify-content:flex-start;flex-wrap:wrap}
+  .org-people-tools{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:14px 20px 0;padding:0 2px}
+  .org-people-title{font-size:15px;font-weight:900;color:var(--ink)}
+  .org-people-meta{font-size:12.5px;color:var(--sub);margin-top:2px}
+  .org-people-tools .org-quick-btn{flex-shrink:0}
   .ord-no{display:inline-block;font-weight:800;color:var(--gold);letter-spacing:.3px;margin-right:2px}
   .org-quick-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border:1px solid;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC';transition:.2s}
   .org-quick-btn .ico{width:15px;height:15px}
@@ -3366,6 +3375,7 @@
   .org-quick-btn.primary .ico{stroke:#fff;stroke-width:2.6}
   .org-quick-btn.ghost{background:color-mix(in srgb,var(--rose) 12%,transparent);border-color:color-mix(in srgb,var(--rose) 42%,transparent);color:var(--rose-hi)}
   .org-quick-btn.ghost:hover{background:color-mix(in srgb,var(--rose) 18%,transparent)}
+  #orgFoot{display:none!important}
   /* 團主收款設定 */
   .pay-setup{margin:14px 20px 0;background:var(--card);border:1px solid var(--edge);border-radius:14px;padding:16px 16px 6px}
   .pay-setup-h{display:flex;align-items:baseline;gap:10px;margin-bottom:12px;flex-wrap:wrap}
@@ -3467,6 +3477,10 @@
   .org3d-meta .os-id{font-family:ui-monospace,monospace;color:var(--gold);font-weight:700}
   .org3d-meta .recv{color:var(--green);font-weight:700}
   .org3d-meta #payRingPct{color:var(--green);font-weight:700}
+  .org3d-submit{display:flex;justify-content:flex-end;padding:14px 18px 4px}
+  .org3d-submit-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:13px;padding:12px 20px;background:linear-gradient(165deg,var(--btn-hi),var(--btn));color:#fff;font-family:'Noto Sans TC';font-size:14.5px;font-weight:900;cursor:pointer;box-shadow:0 6px 18px color-mix(in srgb,var(--gold) 34%,transparent);white-space:nowrap}
+  .org3d-submit-btn .ico{width:17px;height:17px;stroke:#fff;stroke-width:2.6}
+  .org3d-submit-btn:active{transform:scale(.97)}
   @media(max-width:560px){ .org3d-amt{font-size:38px} .org3d-bar{padding:16px 24px 0} }
   .org3-acts button:not(:last-child)::after{content:"";position:absolute;right:0;top:50%;transform:translateY(-50%);width:1px;height:15px;background:var(--edge)}
   .team-open>.team-note.open{padding:2px 18px 6px}
@@ -5849,6 +5863,9 @@
           <span class="os-id" id="teamId">#—</span> · <span id="osPeople">0</span> 人 · 已收 <b class="recv" id="ovRecv">$0</b> · <span id="payRingPct">0%</span> 收款
           <span style="display:none"><b id="ovPaidN">0</b><b id="ovTotalN">0</b><b id="ovUnrecv">$0</b></span>
         </div>
+        <div class="org3d-submit">
+          <button class="org3d-submit-btn" id="orgHeroSubmit" onclick="submitToShop()">送單給店家 <svg class="ico" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </div>
         <div class="org3-acts">
           <button onclick="copyTeamLink()">連結</button>
           <button onclick="openLineShare()">LINE</button>
@@ -5884,8 +5901,12 @@
       <div id="orgSubmitBar" class="org-submit-bar" hidden></div>
 
       <!-- 新增訂單（列印已移到頂部動作列）-->
-      <div class="org-quick">
-        <button class="org-quick-btn primary" onclick="openProxyOrder()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>新增訂單</button>
+      <div class="org-people-tools" id="orgPeopleTools">
+        <div>
+          <div class="org-people-title">訂購人名單</div>
+          <div class="org-people-meta"><span id="orgPeopleCount">0</span> 人 · $<span id="orgPeopleTotal">0</span></div>
+        </div>
+        <button class="org-quick-btn primary" id="orgPeopleAdd" onclick="openProxyOrder()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>新增訂單</button>
       </div>
 
       <!-- 依訂購人清單 -->
@@ -5906,7 +5927,7 @@
   <nav class="pnav" id="orgPnav" aria-label="團購導覽">
     <button type="button" class="pnav-tab on" id="orgTabList" onclick="backToTeamList()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 6h16M4 12h16M4 18h16"/></svg>我的團</button>
     <button type="button" class="pnav-tab" id="orgTabChat" onclick="openOrgChat()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 11.5a8.4 8.4 0 01-9 8.4 9.6 9.6 0 01-3-.5L3 21l1.6-4a8.4 8.4 0 01-1-4 8.4 8.4 0 018.4-8.4A8.4 8.4 0 0121 11.5z"/></svg>聊天<span class="pnav-badge" id="orgNavChatBadge">0</span></button>
-    <button type="button" class="pnav-cta" id="orgPnavCta" onclick="orgPnavAction()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span id="orgPnavCtaLabel">送單給店家</span></button>
+    <button type="button" class="pnav-cta" id="orgPnavCta" onclick="orgPnavAction()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span id="orgPnavCtaLabel">開新團</span></button>
   </nav>
 
   <!-- 開新團 modal -->
@@ -9738,23 +9759,28 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
     set('osPeople',s.people); set('osItems',s.items); set('osTotal',s.total.toLocaleString());
     set('ffCount',s.people); set('ffTotal',s.total.toLocaleString());
+    set('orgPeopleCount',s.people); set('orgPeopleTotal',s.total.toLocaleString());
   }
   function renderPeople(){
     const pending = ROSTER.filter(n=>!ORDERS.some(o=>o.name===n));
-    const personCard=(o,i)=>`
+    const personCard=(o,i)=>{
+      const itemCount=(o.items||[]).reduce((s,[n,q])=>s+(Number(q)||0),0);
+      const note=(o.note||'').trim();
+      const notePreview=note?`<div class="person-note-preview"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>${cdEsc(note)}</div>`:'';
+      return `
       <div class="person-card${o.paid?' is-paid':''}">
         <div class="person-h" onclick="togglePerson(this)">
           <div class="person-av${o.paid?' paid':''}">${cdEsc((o.name||'?').charAt(0))}</div>
           <div class="person-mid">
             <div class="person-top"><span class="person-nm">${cdEsc(o.name)}</span><span class="person-dept">${cdEsc(o.dept||'')}</span></div>
-            <div class="person-summary">${o.items.map(([n,q])=>`${nameSpecHtml(n)} ×${q}`).join(' ・ ')}</div>
+            <div class="person-status-line"><span class="${o.paid?'paid-badge':'unpaid-badge'}">${o.paid?'已付款':'未付款'}</span><span class="person-summary">${itemCount} 項商品，展開看明細</span></div>
+            ${notePreview}
           </div>
           <div class="person-amt">$${orderTotal(o).toLocaleString()}</div>
           <svg class="ico pc-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
         </div>
         <div class="person-acc">
           <div class="person-items">${o.items.map(([n,q])=>`<span class="person-tag">${nameSpecHtml(n)} ×${q}</span>`).join('')}</div>
-          ${o.note?`<div class="person-note"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>${cdEsc(o.note)}</div>`:''}
           <div class="person-ops">
             <button class="person-pay${o.paid?' on':''}" onclick="togglePaid(${i})"><svg class="ico" viewBox="0 0 24 24" style="width:14px;height:14px">${o.paid?'<path d="M20 6L9 17l-5-5"/>':'<path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>'}</svg>${o.paid?'已付款':'標記付款'}</button>
             <button class="person-edit" onclick="editOrder(${i})"><svg class="ico" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.1 2.1 0 013 3L12 15l-4 1 1-4z"/></svg>修改</button>
@@ -9762,6 +9788,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
           </div>
         </div>
       </div>`;
+    };
     const deptGroups=[];
     const deptMap=new Map();
     ORDERS.forEach((o,i)=>{
@@ -10342,14 +10369,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // 團購人底部導覽：依目前視圖切換主行動（送單／開新團）+ 聊天未讀徽章
   function updateOrgNav(){
     const d=document.getElementById('orgDetailView'); const inDetail = !!(d && !d.hidden);
-    const lbl=document.getElementById('orgPnavCtaLabel'); if(lbl) lbl.textContent = inDetail ? '送單給店家' : '開新團';
+    const lbl=document.getElementById('orgPnavCtaLabel'); if(lbl) lbl.textContent = inDetail ? '新增訂單' : '開新團';
     const tl=document.getElementById('orgTabList'); if(tl) tl.classList.toggle('on', !inDetail);
     let tot=0; if(typeof TEAMS!=='undefined' && typeof chatUnread==='function'){ TEAMS.forEach(t=>{ tot+=chatUnread(t.id,'org'); }); }
     const b=document.getElementById('orgNavChatBadge'); if(b){ b.textContent=tot; b.classList.toggle('show',tot>0); }
   }
   function orgPnavAction(){
     const d=document.getElementById('orgDetailView');
-    if(d && !d.hidden){ if(typeof submitToShop==='function') submitToShop(); }
+    if(d && !d.hidden){ if(typeof openProxyOrder==='function') openProxyOrder(); }
     else { if(typeof openNewTeam==='function') openNewTeam(); }
   }
   window.updateOrgNav=updateOrgNav; window.orgPnavAction=orgPnavAction;
