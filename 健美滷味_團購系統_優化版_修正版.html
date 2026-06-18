@@ -3688,7 +3688,10 @@
     .org-chat.open{display:flex;width:min(420px,92vw);z-index:170}
     .org-chat.open .oc-x{display:flex}
   }
-  @media(max-width:767px){ .org-chat.open{width:100vw} }
+  @media(max-width:767px){
+    body[data-screen="organizer"] #orgPnav{z-index:190}
+    .org-chat.open{width:100vw;bottom:calc(74px + env(safe-area-inset-bottom))}
+  }
   .cd-empty{margin:auto;text-align:center;color:var(--mute);font-size:13px;line-height:1.8}
   .cd-foot{display:flex;gap:8px;align-items:flex-end;padding:11px 12px;border-top:1px solid var(--edge);background:var(--bg-1)}
   .cd-foot textarea{flex:1;resize:none;height:42px;max-height:120px;background:var(--card);border:1px solid var(--edge-hi);border-radius:12px;padding:11px 13px;color:var(--ink);font-family:'Noto Sans TC';font-size:14px;line-height:1.35;box-sizing:border-box}

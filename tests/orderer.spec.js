@@ -310,7 +310,7 @@ test.describe('orderer page automation', () => {
     expect(issues).toEqual([]);
   });
 
-  test('organizer mobile chat opens fullscreen from bottom navigation', async ({ page }, testInfo) => {
+  test('organizer mobile chat keeps bottom navigation available', async ({ page }, testInfo) => {
     const issues = collectPageIssues(page);
     await page.setViewportSize({ width: 390, height: 844 });
 
@@ -323,11 +323,20 @@ test.describe('orderer page automation', () => {
     await expect(page.locator('#orgChat .oc-x')).toBeVisible();
     const mobileChat = await page.locator('#orgChat').evaluate(element => {
       const rect = element.getBoundingClientRect();
+      const nav = document.querySelector('#orgPnav')?.getBoundingClientRect();
+      const foot = element.querySelector('.oc-foot')?.getBoundingClientRect();
+      const navCenter = nav ? document.elementFromPoint(nav.left + nav.width / 2, nav.top + nav.height / 2) : null;
       return {
-        fillsViewport: Math.abs(rect.width - window.innerWidth) <= 2 && Math.abs(rect.height - window.innerHeight) <= 2
+        fillsWidth: Math.abs(rect.width - window.innerWidth) <= 2,
+        leavesNavVisible: !!nav && rect.bottom <= nav.top + 1,
+        inputAboveNav: !!nav && !!foot && foot.bottom <= nav.top + 1,
+        navOnTop: !!navCenter && !!nav && !!document.querySelector('#orgPnav')?.contains(navCenter)
       };
     });
-    expect(mobileChat.fillsViewport).toBe(true);
+    expect(mobileChat.fillsWidth).toBe(true);
+    expect(mobileChat.leavesNavVisible).toBe(true);
+    expect(mobileChat.inputAboveNav).toBe(true);
+    expect(mobileChat.navOnTop).toBe(true);
 
     await page.screenshot({ path: testInfo.outputPath('organizer-mobile-chat.png'), fullPage: false });
     expect(issues).toEqual([]);
