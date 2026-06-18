@@ -94,6 +94,12 @@ test.describe('orderer page automation', () => {
     await expect(page.locator('#orderer.active #ordxCart')).toBeVisible();
     await expect(page.locator('#orderer.active #ordSearch')).toHaveCount(0);
     await expect(await productGridColumnCount(page)).toBeLessThanOrEqual(2);
+    const doesHeaderAvoidCart = await page.evaluate(() => {
+      const fields = document.querySelector('#orderer.active .ordx-me')?.getBoundingClientRect();
+      const cart = document.querySelector('#orderer.active #ordxCart')?.getBoundingClientRect();
+      return !!fields && !!cart && fields.right <= cart.left - 12;
+    });
+    expect(doesHeaderAvoidCart).toBe(true);
 
     const categories = page.locator('#orderer.active #ordCats .ordx-cat');
     await expect(categories.first()).toBeVisible();
