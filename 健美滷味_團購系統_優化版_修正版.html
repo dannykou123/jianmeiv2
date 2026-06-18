@@ -3628,9 +3628,43 @@
   .org-head-chat{position:relative;width:40px;height:40px;border:1px solid var(--edge-hi);background:var(--card);border-radius:11px;color:var(--rose);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.18s}
   .org-head-chat:hover{border-color:var(--rose)}
   .org-head-chat .ico{width:20px;height:20px}
+  .org-head-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
+  .org-profile-btn{position:relative;width:40px;height:40px;border:1px solid var(--edge-hi);background:var(--card);border-radius:11px;color:var(--rose);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.18s;font-family:'Noto Serif TC',serif;font-weight:900;font-size:17px}
+  .org-profile-btn:hover{border-color:var(--rose);transform:translateY(-1px)}
+  .org-profile-btn::after{content:'';position:absolute;right:-3px;top:-3px;width:10px;height:10px;border-radius:50%;background:var(--green);border:2px solid var(--bg-0)}
   .org-head-theme{width:40px;height:40px;border:1px solid var(--edge-hi);background:var(--card);border-radius:11px;color:var(--rose);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.18s}
   .org-head-theme:hover{border-color:var(--rose);transform:translateY(-1px)}
   .org-head-theme .ico{width:21px;height:21px}
+  .org-profile-panel{position:fixed;inset:0;z-index:250;display:none;pointer-events:none}
+  .org-profile-panel.show{display:block}
+  .org-profile-mask{position:absolute;inset:0;background:rgba(8,8,12,.18);pointer-events:auto}
+  .org-profile-sheet{position:absolute;top:76px;right:20px;width:min(420px,calc(100vw - 40px));max-height:calc(100dvh - 96px);overflow-y:auto;background:linear-gradient(180deg,var(--bg-2),var(--bg-0));border:1px solid var(--edge-hi);border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.46);padding:16px;pointer-events:auto;color:var(--ink)}
+  .org-profile-handle{display:none;width:44px;height:5px;border-radius:999px;background:color-mix(in srgb,var(--mute) 32%,transparent);margin:0 auto 14px}
+  .org-profile-head{display:flex;align-items:center;gap:13px;margin-bottom:14px}
+  .org-profile-avatar{width:52px;height:52px;border-radius:17px;background:color-mix(in srgb,var(--rose) 16%,var(--card));border:1px solid color-mix(in srgb,var(--rose) 36%,var(--edge-hi));display:flex;align-items:center;justify-content:center;color:var(--rose);font-family:'Noto Serif TC',serif;font-weight:900;font-size:22px;flex-shrink:0}
+  .org-profile-title{flex:1;min-width:0}
+  .org-profile-title b{display:block;font-family:'Noto Serif TC',serif;font-size:18px;color:var(--ink)}
+  .org-profile-title small{display:block;color:var(--mute);font-size:12px;margin-top:2px}
+  .org-profile-code{display:inline-flex;align-items:center;gap:7px;margin-top:7px;padding:6px 9px;border-radius:999px;background:color-mix(in srgb,var(--rose) 11%,transparent);color:var(--rose);font-size:12px;font-weight:800;border:1px solid color-mix(in srgb,var(--rose) 24%,transparent);cursor:pointer}
+  .org-profile-close{width:34px;height:34px;border:none;border-radius:10px;background:var(--card);color:var(--sub);font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+  .org-profile-list{display:flex;flex-direction:column;gap:9px}
+  .org-profile-row{display:flex;align-items:center;gap:12px;width:100%;padding:13px 12px;border:1px solid var(--edge);border-radius:14px;background:color-mix(in srgb,var(--card) 94%,transparent);color:var(--ink);font-family:'Noto Sans TC';text-align:left;cursor:pointer}
+  .org-profile-row:hover{border-color:var(--edge-hi)}
+  .org-profile-ic{width:36px;height:36px;border-radius:12px;background:color-mix(in srgb,var(--rose) 12%,transparent);color:var(--rose);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;flex-shrink:0}
+  .org-profile-row-t{flex:1;min-width:0}
+  .org-profile-row-t b{display:block;font-size:14.5px}
+  .org-profile-row-t small{display:block;font-size:11.5px;color:var(--mute);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .org-profile-go{color:var(--mute);font-size:20px;flex-shrink:0}
+  .org-profile-pay{display:none;border:1px solid var(--edge);border-radius:15px;padding:12px;background:color-mix(in srgb,var(--card) 78%,transparent)}
+  .org-profile-pay.open{display:block}
+  .org-profile-pay-grid{display:grid;gap:10px}
+  .org-profile-pay .pay-fld{margin:0}
+  .org-profile-save{width:100%;margin-top:11px;border:none;border-radius:12px;padding:12px 14px;background:var(--btn);color:#fff;font-weight:800;font-family:'Noto Sans TC';cursor:pointer}
+  @media(max-width:899px){
+    .org-profile-panel.show .org-profile-mask{background:rgba(8,8,12,.45);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+    .org-profile-sheet{top:auto;right:0;left:0;bottom:0;width:auto;max-height:min(82dvh,680px);border-radius:24px 24px 0 0;border-bottom:none;padding:10px 18px calc(18px + env(safe-area-inset-bottom))}
+    .org-profile-handle{display:block}
+  }
   .theme-pick-modal{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px}
   .theme-pick-modal[hidden]{display:none}
   .theme-pick-box{width:min(720px,94vw);max-height:86vh;display:flex;flex-direction:column;background:linear-gradient(180deg,var(--bg-2),var(--bg-0));border:1px solid var(--edge-hi);border-radius:20px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5)}
@@ -3688,8 +3722,10 @@
   @media(max-width:899px){
     body[data-screen="organizer"] #orgPnav{z-index:190}
     .org-chat.open{left:0;right:0;width:auto;max-width:none;border-left:none}
-    body.org-chat-open[data-screen="organizer"] #orgPnav .pnav-cta{display:none}
-    body.org-chat-open[data-screen="organizer"] #orgPnav .pnav-tab{flex:1}
+  }
+  @media(max-width:1079px){
+    body[data-screen="organizer"] #orgPnav .pnav-cta{display:none}
+    body[data-screen="organizer"] #orgPnav .pnav-tab{flex:1}
   }
   .cd-empty{margin:auto;text-align:center;color:var(--mute);font-size:13px;line-height:1.8}
   .cd-foot{display:flex;gap:8px;align-items:flex-end;padding:11px 12px;border-top:1px solid var(--edge);background:var(--bg-1)}
@@ -5830,7 +5866,10 @@
         <button class="org-back" id="orgBack" onclick="backToTeamList()" hidden aria-label="返回"><svg class="ico" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
         <div><div class="ord-shop" id="orgTitle">健美滷味 · 我的團購</div><div class="ord-sub" id="orgSubtitle">王小明發起 · 管理你的開團</div></div>
       </div>
-      <button class="org-head-chat" onclick="openOrgChat()" aria-label="與店家對話"><svg class="ico" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 01-9 8.4 9.6 9.6 0 01-3-.5L3 21l1.6-4a8.4 8.4 0 01-1-4 8.4 8.4 0 018.4-8.4A8.4 8.4 0 0121 11.5z"/></svg><span class="ohc-badge" id="ocHeadBadge">0</span></button>
+      <div class="org-head-actions">
+        <button class="org-profile-btn" id="orgProfileBtn" onclick="openOrgProfile()" aria-label="團主資訊">王</button>
+        <button class="org-head-chat" onclick="openOrgChat()" aria-label="與店家對話"><svg class="ico" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 01-9 8.4 9.6 9.6 0 01-3-.5L3 21l1.6-4a8.4 8.4 0 01-1-4 8.4 8.4 0 018.4-8.4A8.4 8.4 0 0121 11.5z"/></svg><span class="ohc-badge" id="ocHeadBadge">0</span></button>
+      </div>
     </header>
 
     <!-- ▼ 團列表視圖 ▼ -->
@@ -5934,6 +5973,55 @@
     <button type="button" class="pnav-tab" id="orgTabChat" onclick="openOrgChat()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 11.5a8.4 8.4 0 01-9 8.4 9.6 9.6 0 01-3-.5L3 21l1.6-4a8.4 8.4 0 01-1-4 8.4 8.4 0 018.4-8.4A8.4 8.4 0 0121 11.5z"/></svg>聊天<span class="pnav-badge" id="orgNavChatBadge">0</span></button>
     <button type="button" class="pnav-cta" id="orgPnavCta" onclick="orgPnavAction()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span id="orgPnavCtaLabel">開新團</span></button>
   </nav>
+
+  <div class="org-profile-panel" id="orgProfilePanel" onclick="if(event.target===this)closeOrgProfile()">
+    <div class="org-profile-mask" onclick="closeOrgProfile()"></div>
+    <section class="org-profile-sheet" id="orgProfileSheet" onclick="event.stopPropagation()">
+      <div class="org-profile-handle"></div>
+      <div class="org-profile-head">
+        <div class="org-profile-avatar" id="orgProfileAvatar">王</div>
+        <div class="org-profile-title">
+          <b>團主資訊</b>
+          <small id="orgProfileName">王小明・健美滷味團購主</small>
+          <button type="button" class="org-profile-code" id="orgProfileCodeBtn" onclick="copyOrgProfileCode()">團主代碼 <span id="orgProfileCode">A00000</span>　複製</button>
+        </div>
+        <button type="button" class="org-profile-close" id="orgProfileClose" onclick="closeOrgProfile()" aria-label="關閉">&times;</button>
+      </div>
+      <div class="org-profile-list">
+        <button type="button" class="org-profile-row" id="orgProfileNotifyToggle" onclick="toggleOrgProfileNotify()">
+          <span class="org-profile-ic">鈴</span>
+          <span class="org-profile-row-t"><b>通知設定</b><small id="orgProfileNotifyText">新訊息、店家回覆、送單狀態提醒</small></span>
+          <span class="org-profile-go">›</span>
+        </button>
+        <button type="button" class="org-profile-row" id="orgProfilePayToggle" onclick="toggleOrgProfilePay()">
+          <span class="org-profile-ic">$</span>
+          <span class="org-profile-row-t"><b>預設付款資料</b><small id="orgProfilePayText">新團會自動帶入，團內仍可修改</small></span>
+          <span class="org-profile-go">›</span>
+        </button>
+        <div class="org-profile-pay" id="orgProfilePayFields" hidden>
+          <div class="org-profile-pay-grid">
+            <label class="pay-fld">LINE ID
+              <input type="text" id="orgDefaultLineId" placeholder="例：jianmei_luwei">
+            </label>
+            <label class="pay-fld pay-fld-toggle">接受現金
+              <button type="button" id="orgDefaultCash" class="pay-switch on" onclick="toggleOrgDefaultCash()" aria-pressed="true"><span></span></button>
+            </label>
+            <div class="pay-fld pay-fld-col">
+              <label>銀行代碼<input type="text" id="orgDefaultBankCode" inputmode="numeric" maxlength="3" placeholder="例：013" oninput="onOrgDefaultBankCode()"></label>
+              <div class="bank-name" id="orgDefaultBankName">—</div>
+              <label>銀行帳號<input type="text" id="orgDefaultBankAcct" placeholder="例：1234-5678-9012"></label>
+            </div>
+          </div>
+          <button type="button" class="org-profile-save" id="orgDefaultPaySave" onclick="saveOrgDefaultPay()">儲存預設付款資料</button>
+        </div>
+        <button type="button" class="org-profile-row" id="orgProfileDisplayBtn" onclick="openOrgProfileDisplay()">
+          <span class="org-profile-ic">Aa</span>
+          <span class="org-profile-row-t"><b>顯示設定</b><small>主題、字級、聊天室版面</small></span>
+          <span class="org-profile-go">›</span>
+        </button>
+      </div>
+    </section>
+  </div>
 
   <!-- 開新團 modal -->
   <div class="date-modal" id="newTeamModal" onclick="if(event.target===this)closeNewTeam()">
@@ -10345,6 +10433,137 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function openPaySetup(){ const m=document.getElementById('paySetModal'); if(m) m.classList.add('show'); }
   function closePaySetup(){ const m=document.getElementById('paySetModal'); if(m) m.classList.remove('show'); }
   window.openPaySetup=openPaySetup; window.closePaySetup=closePaySetup;
+  const ORG_PROFILE_KEY='jm_org_profile';
+  function defaultOrgProfile(){
+    const name='王小明';
+    return {name, company:'健美滷味團購主', code:(typeof orgCode==='function'?orgCode(name):'A00000'), notify:true, defaultPay:{lineId:'',cash:true,bankCode:'',bankAcct:'',bankName:'',bank:''}};
+  }
+  function getOrgProfile(){
+    const base=defaultOrgProfile();
+    try{
+      const raw=JSON.parse(localStorage.getItem(ORG_PROFILE_KEY)||'{}')||{};
+      const defaultPay=Object.assign({},base.defaultPay,raw.defaultPay||{});
+      return Object.assign({},base,raw,{defaultPay,code:raw.code||base.code});
+    }catch(e){ return base; }
+  }
+  function saveOrgProfile(profile){
+    try{ localStorage.setItem(ORG_PROFILE_KEY, JSON.stringify(profile)); }catch(e){}
+  }
+  function orgDefaultPay(){
+    const p=getOrgProfile();
+    const pay=Object.assign({lineId:'',cash:true,bankCode:'',bankAcct:'',bankName:'',bank:''},p.defaultPay||{});
+    const code=String(pay.bankCode||'').trim();
+    const acct=String(pay.bankAcct||'').trim();
+    const name=BANK_CODES[code]||pay.bankName||'';
+    return {
+      lineId:String(pay.lineId||'').trim(),
+      cash:pay.cash!==false,
+      bankCode:code,
+      bankAcct:acct,
+      bankName:name,
+      bank:(code||acct)?((name?name+' ':'')+(code?'('+code+') ':'')+acct).trim():''
+    };
+  }
+  function orgDefaultPayFromFields(){
+    const val=id=>{ const el=document.getElementById(id); return el ? String(el.value||'').trim() : ''; };
+    const code=val('orgDefaultBankCode');
+    const acct=val('orgDefaultBankAcct');
+    const name=BANK_CODES[code]||'';
+    const cashBtn=document.getElementById('orgDefaultCash');
+    return {
+      lineId:val('orgDefaultLineId'),
+      cash:cashBtn ? cashBtn.classList.contains('on') : true,
+      bankCode:code,
+      bankAcct:acct,
+      bankName:name,
+      bank:(code||acct)?((name?name+' ':'')+(code?'('+code+') ':'')+acct).trim():''
+    };
+  }
+  function profileInitial(name){ return String(name||'?').trim().charAt(0)||'?'; }
+  function renderOrgProfileSummary(){
+    const p=getOrgProfile();
+    const pay=orgDefaultPay();
+    const initial=profileInitial(p.name);
+    const btn=document.getElementById('orgProfileBtn'); if(btn) btn.textContent=initial;
+    const av=document.getElementById('orgProfileAvatar'); if(av) av.textContent=initial;
+    const nm=document.getElementById('orgProfileName'); if(nm) nm.textContent=`${p.name}・${p.company||'團購主'}`;
+    const cd=document.getElementById('orgProfileCode'); if(cd) cd.textContent=p.code||'A00000';
+    const line=document.getElementById('orgDefaultLineId'); if(line) line.value=pay.lineId;
+    const code=document.getElementById('orgDefaultBankCode'); if(code) code.value=pay.bankCode;
+    const acct=document.getElementById('orgDefaultBankAcct'); if(acct) acct.value=pay.bankAcct;
+    const cash=document.getElementById('orgDefaultCash');
+    if(cash){ cash.classList.toggle('on',pay.cash); cash.setAttribute('aria-pressed',pay.cash?'true':'false'); }
+    onOrgDefaultBankCode();
+    const nt=document.getElementById('orgProfileNotifyText');
+    if(nt){
+      if(typeof notifySupported==='function' && !notifySupported()) nt.textContent='此瀏覽器不支援推播通知';
+      else nt.textContent=(typeof notifyEnabled==='function' && notifyEnabled())?'通知已開啟':'新訊息、店家回覆、送單狀態提醒';
+    }
+    const pt=document.getElementById('orgProfilePayText');
+    if(pt){
+      const hasLine=!!pay.lineId, hasBank=!!(pay.bankCode||pay.bankAcct);
+      pt.textContent=(hasLine||hasBank||pay.cash)?`新團會帶入：${[hasLine?'LINE ID':null,hasBank?'銀行帳號':null,pay.cash?'現金':null].filter(Boolean).join('、')}`:'新團會自動帶入，團內仍可修改';
+    }
+  }
+  function openOrgProfile(){
+    renderOrgProfileSummary();
+    const panel=document.getElementById('orgProfilePanel');
+    if(panel) panel.classList.add('show');
+  }
+  function closeOrgProfile(){
+    const panel=document.getElementById('orgProfilePanel');
+    if(panel) panel.classList.remove('show');
+    const payBox=document.getElementById('orgProfilePayFields');
+    if(payBox){ payBox.hidden=true; payBox.classList.remove('open'); }
+  }
+  function toggleOrgProfilePay(){
+    const payBox=document.getElementById('orgProfilePayFields'); if(!payBox) return;
+    const open=payBox.hidden;
+    payBox.hidden=!open;
+    payBox.classList.toggle('open',open);
+    if(open) renderOrgProfileSummary();
+  }
+  function onOrgDefaultBankCode(){
+    const code=(document.getElementById('orgDefaultBankCode')?.value||'').trim();
+    const nm=BANK_CODES[code];
+    const el=document.getElementById('orgDefaultBankName');
+    if(el){ el.textContent=code?(nm||'查無此代碼'):'—'; el.classList.toggle('unknown',!!code&&!nm); }
+  }
+  function toggleOrgDefaultCash(){
+    const btn=document.getElementById('orgDefaultCash'); if(!btn) return;
+    const on=!btn.classList.contains('on');
+    btn.classList.toggle('on',on);
+    btn.setAttribute('aria-pressed',on?'true':'false');
+  }
+  function saveOrgDefaultPay(){
+    const p=getOrgProfile();
+    p.defaultPay=orgDefaultPayFromFields();
+    saveOrgProfile(p);
+    renderOrgProfileSummary();
+    toast('已儲存團主預設付款資料');
+  }
+  function toggleOrgProfileNotify(){
+    if(typeof notifySupported==='function' && !notifySupported()){ toast('此裝置／瀏覽器不支援通知',true); renderOrgProfileSummary(); return; }
+    if(typeof notifyEnabled==='function' && !notifyEnabled() && typeof requestNotify==='function'){
+      requestNotify().then(()=>renderOrgProfileSummary());
+    }else if(typeof toggleNotify==='function'){
+      toggleNotify();
+      renderOrgProfileSummary();
+    }
+  }
+  function copyOrgProfileCode(){
+    const code=getOrgProfile().code||'A00000';
+    const done=()=>toast('已複製團主代碼');
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(code).then(done).catch(()=>{}); return; }
+    const ta=document.createElement('textarea'); ta.value=code; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); done(); }catch(e){} ta.remove();
+  }
+  function openOrgProfileDisplay(){
+    closeOrgProfile();
+    if(typeof openThemePicker==='function') openThemePicker();
+  }
+  window.openOrgProfile=openOrgProfile; window.closeOrgProfile=closeOrgProfile; window.toggleOrgProfilePay=toggleOrgProfilePay;
+  window.onOrgDefaultBankCode=onOrgDefaultBankCode; window.toggleOrgDefaultCash=toggleOrgDefaultCash; window.saveOrgDefaultPay=saveOrgDefaultPay;
+  window.toggleOrgProfileNotify=toggleOrgProfileNotify; window.copyOrgProfileCode=copyOrgProfileCode; window.openOrgProfileDisplay=openOrgProfileDisplay; window.orgDefaultPay=orgDefaultPay;
   // 團主給同事的備註：填寫（團主端）＋顯示（訂購人端）
   function saveHostNote(){ const t=TEAMS.find(x=>x.id===currentTeamId); if(!t)return; t.hostNote=document.getElementById('teamHostNote').value; updateNotePreview(); }
   function updateNotePreview(){ const p=document.getElementById('teamNotePreview'); if(!p) return; const t=(typeof TEAMS!=='undefined'&&currentTeamId)?TEAMS.find(x=>x.id===currentTeamId):null; const ta=document.getElementById('teamHostNote'); const v=(((t&&t.hostNote)||(ta&&ta.value)||'')+'').trim(); p.textContent = v || '尚未填寫'; p.classList.toggle('has', !!v); }
@@ -10416,7 +10635,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const deliverAt=document.getElementById('ntDeliver')?.value||'';
     const pickupAt=document.getElementById('ntPickup')?.value||'';
     const deptOptions=uniqueDeptOptions(deptOptionListFromText(document.getElementById('ntDeptOptions')?.value).length?deptOptionListFromText(document.getElementById('ntDeptOptions')?.value):DEFAULT_DEPT_OPTIONS);
-    const t={id:Math.random().toString(36).slice(2,8), name, start, deadline, deliverAt, pickupAt, deptOptions, open:true, orders:0, total:0, submitStatus:null};
+    const t={id:Math.random().toString(36).slice(2,8), name, start, deadline, deliverAt, pickupAt, deptOptions, open:true, orders:0, total:0, submitStatus:null, pay:orgDefaultPay()};
     TEAMS.unshift(t);
     closeNewTeam(); renderTeamList();
     toast('已開團「'+name+'」');

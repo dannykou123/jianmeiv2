@@ -438,6 +438,103 @@ test.describe('orderer page automation', () => {
     expect(issues).toEqual([]);
   });
 
+  test('organizer profile panel is responsive and excludes identity switching', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    await openApp(page);
+    await openOrganizerDetail(page);
+
+    await expect(page.locator('#orgProfileBtn')).toBeVisible();
+    await expect(page.locator('#orgPnavCta')).toBeHidden();
+    await page.locator('#orgProfileBtn').click();
+    await expect(page.locator('#orgProfilePanel.show')).toBeVisible();
+    await expect(page.locator('#orgProfilePanel')).toContainText('團主資訊');
+    await expect(page.locator('#orgProfilePanel')).toContainText('團主代碼');
+    await expect(page.locator('#orgProfilePanel')).not.toContainText('切換身份');
+    await expect(page.locator('#orgProfilePanel')).not.toContainText('登出');
+
+    const mobilePanel = await page.locator('#orgProfileSheet').evaluate(element => {
+      const rect = element.getBoundingClientRect();
+      return {
+        bottomSheet: Math.abs(window.innerHeight - rect.bottom) <= 2,
+        nearFullWidth: rect.width >= window.innerWidth - 4,
+        notDesktopPopover: rect.top > window.innerHeight * 0.35,
+      };
+    });
+    expect(mobilePanel.bottomSheet).toBe(true);
+    expect(mobilePanel.nearFullWidth).toBe(true);
+    expect(mobilePanel.notDesktopPopover).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath('organizer-profile-mobile-sheet.png'), fullPage: false });
+
+    await page.locator('#orgProfileClose').click();
+    await expect(page.locator('#orgProfilePanel.show')).toHaveCount(0);
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await page.waitForTimeout(100);
+    await page.locator('#orgProfileBtn').click();
+    await expect(page.locator('#orgProfilePanel.show')).toBeVisible();
+    const desktopPanel = await page.locator('#orgProfileSheet').evaluate(element => {
+      const rect = element.getBoundingClientRect();
+      return {
+        popoverWidth: rect.width <= 440,
+        nearTop: rect.top <= 120,
+        nearRight: window.innerWidth - rect.right <= 28,
+        notBottomSheet: window.innerHeight - rect.bottom > 80,
+      };
+    });
+    expect(desktopPanel.popoverWidth).toBe(true);
+    expect(desktopPanel.nearTop).toBe(true);
+    expect(desktopPanel.nearRight).toBe(true);
+    expect(desktopPanel.notBottomSheet).toBe(true);
+
+    await page.screenshot({ path: testInfo.outputPath('organizer-profile-desktop-popover.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
+  test('organizer profile default payment applies to new teams without overwriting the profile', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    await openOrganizerList(page);
+    await page.evaluate(() => {
+      localStorage.removeItem('jm_org_profile');
+      if (typeof window.setMaxTeams === 'function') window.setMaxTeams(9);
+    });
+
+    await page.locator('#orgProfileBtn').click();
+    await expect(page.locator('#orgProfilePanel.show')).toBeVisible();
+    await page.locator('#orgProfilePayToggle').click();
+    await expect(page.locator('#orgProfilePayFields')).toBeVisible();
+    await page.locator('#orgDefaultLineId').fill('org_default_tw');
+    await page.locator('#orgDefaultBankCode').fill('013');
+    await page.locator('#orgDefaultBankAcct').fill('9999-0000');
+    await page.locator('#orgDefaultPaySave').click();
+    await page.locator('#orgProfileClose').click();
+
+    await page.evaluate(() => window.openNewTeam());
+    await expect(page.locator('#newTeamModal.show')).toBeVisible();
+    await page.locator('#ntName').fill('預設付款測試團');
+    await page.evaluate(() => window.createTeam());
+    await expect(page.locator('#newTeamModal.show')).toHaveCount(0);
+
+    await page.locator('#teamList .tcard').first().click();
+    await expect(page.locator('#organizer.active #orgDetailView')).toBeVisible();
+    await page.locator('#teamPaySetBtn').click();
+    await expect(page.locator('#paySetModal.show')).toBeVisible();
+    await expect(page.locator('#paySetLineId')).toHaveValue('org_default_tw');
+    await expect(page.locator('#paySetBankCode')).toHaveValue('013');
+    await expect(page.locator('#paySetBankAcct')).toHaveValue('9999-0000');
+
+    await page.locator('#paySetLineId').fill('team_only_line');
+    await page.evaluate(() => window.closePaySetup());
+    await page.locator('#orgProfileBtn').click();
+    await page.locator('#orgProfilePayToggle').click();
+    await expect(page.locator('#orgDefaultLineId')).toHaveValue('org_default_tw');
+
+    await page.screenshot({ path: testInfo.outputPath('organizer-profile-default-payment.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
   test('organizer detail uses compact bottom submit summary and add-order action on mobile', async ({ page }, testInfo) => {
     const issues = collectPageIssues(page);
     await page.setViewportSize({ width: 390, height: 844 });
@@ -448,6 +545,7 @@ test.describe('orderer page automation', () => {
     await expect(page.locator('#orgPnav')).toBeVisible();
     await expect(page.locator('#orgHeroSubmit')).toHaveCount(0);
     await expect(page.locator('#orgFoot')).toBeVisible();
+    await expect(page.locator('#orgPnavCta')).toBeHidden();
 
     const submitSummary = await page.evaluate(() => {
       const foot = document.querySelector('#orgFoot');
@@ -470,7 +568,7 @@ test.describe('orderer page automation', () => {
     expect(submitSummary.syncsStats).toBe(true);
     expect(submitSummary.buttonVisible).toBe(true);
 
-    await page.locator('#orgPnavCta').click();
+    await page.locator('#orgPeopleAdd').click();
     await expect(page.locator('#proxyModal.show')).toBeVisible();
     await expect(page.locator('#submitModal.show')).toHaveCount(0);
     await page.evaluate(() => window.closeProxyOrder());
