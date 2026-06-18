@@ -130,7 +130,7 @@ test.describe('orderer page automation', () => {
     expect(issues).toEqual([]);
   });
 
-  test('empty desktop order summary stays compact while scrolling', async ({ page }, testInfo) => {
+  test('desktop order summary floats at bottom right without covering products', async ({ page }, testInfo) => {
     const issues = collectPageIssues(page);
     await page.setViewportSize({ width: 1440, height: 900 });
 
@@ -139,11 +139,50 @@ test.describe('orderer page automation', () => {
     const height = await page.locator('#orderer.active #ordxCart').evaluate(element => element.getBoundingClientRect().height);
     expect(height).toBeLessThan(280);
 
+    const cartBottomRight = await page.locator('#orderer.active #ordxCart').evaluate(element => {
+      const cart = element.getBoundingClientRect();
+      const productArea = document.querySelector('#orderer.active .ordx-pick')?.getBoundingClientRect();
+      const viewport = { width: window.innerWidth, height: window.innerHeight };
+      if (!productArea) return { isBottomRight: false, avoidsProducts: false };
+      return {
+        isBottomRight: (
+          Math.abs(viewport.height - cart.bottom - 16) <= 2 &&
+          viewport.width - cart.right >= 12
+        ),
+        avoidsProducts: cart.left >= productArea.right + 12
+      };
+    });
+    expect(cartBottomRight.isBottomRight).toBe(true);
+    expect(cartBottomRight.avoidsProducts).toBe(true);
+
     await page.evaluate(() => window.scrollTo(0, 700));
     await page.waitForTimeout(100);
-    const top = await page.locator('#orderer.active #ordxCart').evaluate(element => element.getBoundingClientRect().top);
-    expect(top).toBeGreaterThanOrEqual(0);
-    expect(top).toBeLessThan(40);
+    const scrolledCartState = await page.locator('#orderer.active #ordxCart').evaluate(element => {
+      const cart = element.getBoundingClientRect();
+      const productArea = document.querySelector('#orderer.active .ordx-pick')?.getBoundingClientRect();
+      if (!productArea) return { bottomGap: -1, avoidsProducts: false };
+      return {
+        bottomGap: Math.round(window.innerHeight - cart.bottom),
+        avoidsProducts: cart.left >= productArea.right + 12
+      };
+    });
+    expect(scrolledCartState.bottomGap).toBe(16);
+    expect(scrolledCartState.avoidsProducts).toBe(true);
+
+    await page.locator('#orderer.active #ordMenu .ordx-card').first().click();
+    await expect(page.locator('#ordCartN')).toHaveText('1');
+    await expect(page.locator('#orderer.active #ordCartMini')).toBeVisible();
+    await expect(page.locator('#orderer.active #ocSubmit')).toBeVisible();
+    const populatedCartState = await page.locator('#orderer.active #ordxCart').evaluate(element => {
+      const cart = element.getBoundingClientRect();
+      const submit = document.querySelector('#orderer.active #ocSubmit')?.getBoundingClientRect();
+      return {
+        bottomGap: Math.round(window.innerHeight - cart.bottom),
+        submitInsideCart: !!submit && submit.bottom <= cart.bottom && submit.top >= cart.top
+      };
+    });
+    expect(populatedCartState.bottomGap).toBe(16);
+    expect(populatedCartState.submitInsideCart).toBe(true);
 
     await page.screenshot({ path: testInfo.outputPath('orderer-empty-cart-scrolled.png'), fullPage: false });
     expect(issues).toEqual([]);
