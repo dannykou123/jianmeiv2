@@ -768,6 +768,28 @@ test.describe('orderer page automation', () => {
     await expect(page.locator('#orgProfilePanel.show')).toBeVisible();
     await page.locator('#orgProfilePayToggle').click();
     await expect(page.locator('#orgProfilePayFields')).toBeVisible();
+    await expect(page.locator('#orgDefaultCash .pay-switch-dot')).toHaveCount(1);
+    const profileCashSwitch = await page.locator('#orgDefaultCash').evaluate(element => {
+      const dot = element.querySelector('.pay-switch-dot');
+      const rect = element.getBoundingClientRect();
+      const dotRect = dot?.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      const dotStyle = dot ? getComputedStyle(dot) : null;
+      return {
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
+        hasGreenOnState: style.backgroundColor !== getComputedStyle(document.documentElement).getPropertyValue('--bg-0').trim(),
+        dotIsRound: !!dotRect && Math.round(dotRect.width) === 20 && Math.round(dotRect.height) === 20 && dotStyle?.borderRadius === '50%',
+        dotOnRight: !!dotRect && dotRect.left > rect.left + rect.width / 2 - 2,
+      };
+    });
+    expect(profileCashSwitch).toEqual({
+      width: 44,
+      height: 26,
+      hasGreenOnState: true,
+      dotIsRound: true,
+      dotOnRight: true,
+    });
     await page.locator('#orgDefaultLineId').fill('org_default_tw');
     await page.locator('#orgDefaultBankCode').fill('013');
     await page.locator('#orgDefaultBankAcct').fill('9999-0000');
