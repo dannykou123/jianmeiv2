@@ -310,6 +310,116 @@ test.describe('orderer page automation', () => {
     expect(issues).toEqual([]);
   });
 
+  test('store chat shows unread counts per room and clears only the opened room', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 1024, height: 768 });
+
+    await openApp(page);
+    await goScreen(page, 'admin');
+    const roomIds = await page.evaluate(() => {
+      window.eval(`
+        const now = Date.now();
+        Object.values(MESSAGES).forEach(list => list.forEach(message => { message._seen = true; }));
+        MESSAGES.qa_store_a = [
+          {from:'org', text:'QA A first unread', ts: now - 2000, _seen:false},
+          {from:'org', text:'QA A second unread', ts: now - 1000, _seen:false}
+        ];
+        MESSAGES.qa_store_b = [
+          {from:'org', text:'QA B unread', ts: now - 500, _seen:false}
+        ];
+        chatRoomId = '_general';
+        switchView('chat');
+        renderChatList();
+        refreshChatBadges();
+      `);
+      return ['qa_store_a', 'qa_store_b'];
+    });
+
+    const roomA = page.locator(`.cr-item[onclick="selectChatRoom('${roomIds[0]}')"]`);
+    const roomB = page.locator(`.cr-item[onclick="selectChatRoom('${roomIds[1]}')"]`);
+    await expect(roomA.locator('.cri-badge')).toHaveText('2');
+    await expect(roomB.locator('.cri-badge')).toHaveText('1');
+    await expect(page.locator('#chatNavBadge')).toHaveText('3');
+
+    await roomB.click();
+    await expect(roomB.locator('.cri-badge')).toHaveCount(0);
+    await expect(roomA.locator('.cri-badge')).toHaveText('2');
+    await expect(page.locator('#chatNavBadge')).toHaveText('2');
+
+    await page.screenshot({ path: testInfo.outputPath('store-chat-room-unread.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
+  test('organizer chat tabs keep separate unread counts by team', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    await openOrganizerList(page);
+    const ids = await page.evaluate(() => {
+      const first = TEAMS[0].id;
+      const second = TEAMS[1].id;
+      const now = Date.now();
+      Object.values(MESSAGES).forEach(list => list.forEach(message => { message._seen = true; }));
+      MESSAGES[first] = [
+        {from:'shop', text:'QA first team unread', ts: now - 2000, _seen:false},
+        {from:'shop', text:'QA first team unread again', ts: now - 1000, _seen:false}
+      ];
+      MESSAGES[second] = [
+        {from:'shop', text:'QA second team unread', ts: now - 500, _seen:false}
+      ];
+      refreshChatBadges();
+      return { first, second };
+    });
+
+    await page.locator('#orgTabChat').click();
+    await expect(page.locator('#orgChat.open')).toBeVisible();
+    const firstTab = page.locator(`#ocTabs .oc-tab[onclick="selectOcTeam('${ids.first}')"]`);
+    const secondTab = page.locator(`#ocTabs .oc-tab[onclick="selectOcTeam('${ids.second}')"]`);
+    await expect(firstTab.locator('.oc-tab-badge')).toHaveText('2');
+    await expect(secondTab.locator('.oc-tab-badge')).toHaveText('1');
+    await expect(page.locator('#orgNavChatBadge')).toHaveText('3');
+
+    await secondTab.click();
+    await expect(secondTab.locator('.oc-tab-badge')).toHaveCount(0);
+    await expect(firstTab.locator('.oc-tab-badge')).toHaveText('2');
+    await expect(page.locator('#orgNavChatBadge')).toHaveText('2');
+
+    await page.screenshot({ path: testInfo.outputPath('organizer-chat-tab-unread.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
+  test('chat read receipts and shop activity are visible to organizer', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    await openOrganizerList(page);
+    const teamId = await page.evaluate(() => {
+      const id = TEAMS[0].id;
+      MESSAGES[id] = [];
+      window.openOrgChat(id);
+      return id;
+    });
+    await expect(page.locator('#orgChat.open')).toBeVisible();
+    await page.locator('#ocInput').fill('QA read receipt check');
+    await page.locator('#orgChat .oc-foot .cd-send').click();
+    await expect(page.locator('#ocBody .chat-msg.me').last().locator('.cm-read')).toHaveText('未讀');
+
+    await goScreen(page, 'admin');
+    await page.evaluate(id => {
+      switchView('chat');
+      selectChatRoom(id);
+    }, teamId);
+    await expect(page.locator('#crBody')).toContainText('QA read receipt check');
+
+    await goScreen(page, 'organizer');
+    await page.evaluate(id => window.openOrgChat(id), teamId);
+    await expect(page.locator('#ocBody .chat-msg.me').last().locator('.cm-read')).toHaveText('已讀');
+    await expect(page.locator('#ocSub')).toContainText('店家剛剛在線');
+
+    await page.screenshot({ path: testInfo.outputPath('organizer-chat-read-and-presence.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
   test('organizer laptop opens chat as drawer and keeps modals above it', async ({ page }, testInfo) => {
     const issues = collectPageIssues(page);
     await page.setViewportSize({ width: 1024, height: 768 });

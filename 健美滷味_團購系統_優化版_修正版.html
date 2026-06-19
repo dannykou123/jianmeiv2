@@ -3563,6 +3563,9 @@
   .chat-msg.me{align-self:flex-end;align-items:flex-end}
   .chat-msg.me .cm-bubble{background:linear-gradient(145deg,color-mix(in srgb,var(--rose) 84%,#000),color-mix(in srgb,var(--rose) 60%,#000));color:#fff;border-top-right-radius:5px}
   .chat-msg.me .cm-time{text-align:right}
+  .cm-read{display:inline-flex;align-items:center;margin-left:6px;padding:1px 6px;border-radius:999px;background:color-mix(in srgb,var(--ink) 9%,transparent);color:var(--sub);font-size:10.5px;font-weight:800}
+  .cm-read.seen{color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,transparent)}
+  .cm-read.unseen{color:var(--mute)}
   .chat-sys{align-self:center;max-width:90%;text-align:center;margin:2px 0;color:var(--mute);font-size:12px;line-height:1.5}
   .chat-sys span{background:color-mix(in srgb,var(--ink) 7%,var(--card));border:1px solid var(--edge);border-radius:10px;padding:5px 12px;display:inline-block}
   .chat-sys i{display:block;font-style:normal;font-size:10px;margin-top:3px;opacity:.7}
@@ -3792,6 +3795,8 @@
   .cr-item{display:block;width:100%;text-align:left;border:1px solid transparent;background:none;border-radius:12px;padding:11px 12px;cursor:pointer;font-family:'Noto Sans TC';transition:.15s;margin-bottom:2px}
   .cr-item:hover{background:var(--card)}
   .cr-item.on{background:var(--card);border-color:color-mix(in srgb,var(--rose) 45%,var(--edge-hi))}
+  .cr-item.unread .cri-nm{font-weight:900}
+  .cr-item.unread .cri-prev{color:var(--ink);font-weight:800}
   .cri-top{display:flex;align-items:baseline;gap:8px}
   .cri-nm{flex:1;min-width:0;font-size:14.5px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .cri-tm{font-size:11px;color:var(--mute);flex-shrink:0}
@@ -6835,20 +6840,61 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     let c=(typeof CONTACTS!=='undefined')?CONTACTS.find(x=>x.id===id):null; if(c) return {name:(c.type==='person'?c.name:(c.company||c.name)), who:(c.type==='person'?'個人聯絡人':(c.name||'公司聯絡人')), contact:true};
     return {name:'團購單', who:'團購主'};
   }
-  function chatUnread(id,role){ const a=MESSAGES[id]||[]; return a.filter(m=>m.from!==role && !m._seen).length; }
   function chatLast(id){ const a=MESSAGES[id]||[]; return a.length?a[a.length-1]:null; }
   function chatFmtT(ts){ const d=new Date(ts); return (d.getMonth()+1)+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+  const CHAT_PRESENCE_KEY='jm_chat_presence';
+  let CHAT_PRESENCE=(function(){ try{ return JSON.parse(localStorage.getItem(CHAT_PRESENCE_KEY)||'{}')||{}; }catch(e){ return {}; } })();
+  function chatSavePresence(){ try{ localStorage.setItem(CHAT_PRESENCE_KEY,JSON.stringify(CHAT_PRESENCE)); }catch(e){} }
+  function chatTouchPresence(role,ts){ if(!role)return; CHAT_PRESENCE[role]=ts||Date.now(); chatSavePresence(); }
+  function chatPresenceText(role){
+    const ts=Number(CHAT_PRESENCE[role]||0), name=role==='shop'?'店家':'團主';
+    if(!ts) return name+'尚未上線';
+    const diff=Math.max(0,Date.now()-ts), min=Math.floor(diff/60000);
+    if(diff<60000) return name+'剛剛在線';
+    if(min<60) return name+' '+min+' 分鐘前在線';
+    const hr=Math.floor(min/60);
+    if(hr<24) return name+' '+hr+' 小時前在線';
+    return name+' '+chatFmtT(ts)+' 在線';
+  }
+  function chatSeenBy(message,role){
+    if(!message) return true;
+    if(message.from===role) return true;
+    if(message._seenBy && message._seenBy[role]) return true;
+    return !!message._seen;
+  }
+  function chatUnread(id,role){ const a=MESSAGES[id]||[]; return a.filter(m=>m.from!==role && !chatSeenBy(m,role)).length; }
+  function chatMarkSeen(id,role){
+    const a=MESSAGES[id]||[];
+    a.forEach(m=>{
+      if(!m._seenBy) m._seenBy={};
+      m._seenBy[role]=true;
+      if(m.from!=='sys' && m.from!==role) m._seen=true;
+    });
+  }
+  function chatNewMessage(from,data){
+    const m=Object.assign({from:from,ts:Date.now(),_seen:false,_seenBy:{}},data||{});
+    if(from==='shop'||from==='org') m._seenBy[from]=true;
+    return m;
+  }
+  function chatReceiptText(message,role){
+    if(!message||message.from!==role||message.from==='sys') return '';
+    const peer=role==='shop'?'org':'shop';
+    return chatSeenBy(message,peer)?'已讀':'未讀';
+  }
   function chatBubbles(id,role){
     const a=MESSAGES[id]||[];
     if(!a.length) return '<div class="cd-empty">尚無訊息<br>傳送第一則訊息給'+(role==='shop'?'團購主':'店家')+'吧</div>';
-    return a.map(m=>{
+    const lastOwn=a.reduce((idx,m,i)=>m.from===role?i:idx,-1);
+    return a.map((m,i)=>{
       if(m.from==='sys') return '<div class="chat-sys"><span>'+cdEsc(m.text)+'</span><i>'+chatFmtT(m.ts)+'</i></div>';
       const me=(m.from===role); const who=me?'我':(m.from==='shop'?'店家':'團購主');
-      if(m.sticker) return '<div class="chat-msg '+(me?'me':'them')+'"><div class="cm-sticker">'+stickerSvg(m.sticker)+'</div><div class="cm-time">'+who+' · '+chatFmtT(m.ts)+'</div></div>';
-      return '<div class="chat-msg '+(me?'me':'them')+'"><div class="cm-bubble">'+cdEsc(m.text)+'</div><div class="cm-time">'+who+' · '+chatFmtT(m.ts)+'</div></div>';
+      const receipt=(me&&i===lastOwn)?chatReceiptText(m,role):'';
+      const receiptHtml=receipt?'<span class="cm-read '+(receipt==='已讀'?'seen':'unseen')+'">'+receipt+'</span>':'';
+      if(m.sticker) return '<div class="chat-msg '+(me?'me':'them')+'"><div class="cm-sticker">'+stickerSvg(m.sticker)+'</div><div class="cm-time">'+who+' · '+chatFmtT(m.ts)+receiptHtml+'</div></div>';
+      return '<div class="chat-msg '+(me?'me':'them')+'"><div class="cm-bubble">'+cdEsc(m.text)+'</div><div class="cm-time">'+who+' · '+chatFmtT(m.ts)+receiptHtml+'</div></div>';
     }).join('');
   }
-  function pushSysMsg(teamId,text){ if(!teamId)return; if(!MESSAGES[teamId])MESSAGES[teamId]=[]; MESSAGES[teamId].push({from:'sys',text:text,ts:Date.now(),_seen:false}); if(typeof refreshChatBadges==='function')refreshChatBadges(); if(typeof renderChatList==='function')renderChatList(); if(typeof renderChatRoom==='function')renderChatRoom(); if(typeof renderOrgChat==='function')renderOrgChat(); const dr=document.getElementById('chatDrawer'); if(dr&&dr.classList.contains('show')&&typeof renderChat==='function')renderChat(); }
+  function pushSysMsg(teamId,text){ if(!teamId)return; if(!MESSAGES[teamId])MESSAGES[teamId]=[]; MESSAGES[teamId].push(chatNewMessage('sys',{text:text})); if(typeof refreshChatBadges==='function')refreshChatBadges(); if(typeof renderChatList==='function')renderChatList(); if(typeof renderChatRoom==='function')renderChatRoom(); if(typeof renderOrgChat==='function')renderOrgChat(); const dr=document.getElementById('chatDrawer'); if(dr&&dr.classList.contains('show')&&typeof renderChat==='function')renderChat(); }
   // 單色線條貼圖（開心 / 滷味 / 店家 / 團購情境）
   const STICKERS=[
     {id:'smile',p:'<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 007 0"/><path d="M9 9.5h.01M15 9.5h.01"/>'},
@@ -6883,13 +6929,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     else { teamId=(typeof chatTeamId!=='undefined')?chatTeamId:null; role=(typeof chatRole!=='undefined')?chatRole:'org'; }
     if(!teamId) return;
     if(!MESSAGES[teamId]) MESSAGES[teamId]=[];
-    MESSAGES[teamId].push({from:role,sticker:id,ts:Date.now(),_seen:true});
+    MESSAGES[teamId].push(chatNewMessage(role,{sticker:id}));
+    if(role==='shop') chatTouchPresence('shop');
     if(scope==='org'&&typeof renderOrgChat==='function') renderOrgChat();
     else if(scope==='room'){ if(typeof renderChatRoom==='function') renderChatRoom(); if(typeof renderChatList==='function') renderChatList(); }
     else if(typeof renderChat==='function') renderChat();
     if(typeof refreshChatBadges==='function') refreshChatBadges();
   }
-  window.pushSysMsg=pushSysMsg; window.sendSticker=sendSticker; window.fillStickerBar=fillStickerBar;
+  window.pushSysMsg=pushSysMsg; window.sendSticker=sendSticker; window.fillStickerBar=fillStickerBar; window.chatTouchPresence=chatTouchPresence; window.chatPresenceText=chatPresenceText;
   /* 聊天統一入口：店家→聊天室頁、團購主→右側聊天面板（原浮動抽屜已合併，不再多一套介面） */
   function openChat(id,role){
     if(!id){ if(typeof toast==='function') toast('請先進入一個團購單',true); return; }
@@ -6908,7 +6955,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const i=document.getElementById('cdInput'); if(!i) return;
     const txt=i.value.trim(); if(!txt||!chatTeamId) return;
     if(!MESSAGES[chatTeamId]) MESSAGES[chatTeamId]=[];
-    MESSAGES[chatTeamId].push({from:chatRole,text:txt,ts:Date.now(),_seen:true});
+    MESSAGES[chatTeamId].push(chatNewMessage(chatRole,{text:txt}));
+    if(chatRole==='shop') chatTouchPresence('shop');
     i.value=''; cdAutoGrow(i); renderChat(); refreshChatBadges();
     if(typeof renderChatList==='function') renderChatList();
   }
@@ -6942,12 +6990,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   let ocTeam=null;
   function ocTeamList(){ const l=(typeof TEAMS!=='undefined'?TEAMS:[]).map(t=>({id:t.id,name:t.name})); return [{id:'_general',name:'一般聯絡'}].concat(l); }
   function renderOcTabs(){ const box=document.getElementById('ocTabs'); if(!box)return; const list=ocTeamList(); box.innerHTML=list.map(t=>{ const un=chatUnread(t.id,'org'); return '<button class="oc-tab'+(t.id===ocTeam?' on':'')+'" onclick="selectOcTeam(\''+t.id+'\')">'+cdEsc(t.name)+(un?'<span class="oc-tab-badge">'+un+'</span>':'')+'</button>'; }).join(''); }
-  function renderOrgChat(){ const body=document.getElementById('ocBody'); if(!body)return; renderOcTabs(); const sub=document.getElementById('ocSub'); if(!ocTeam){ if(sub)sub.textContent='選擇團購單'; body.innerHTML='<div class="cd-empty">選擇上方團購單，開始與店家對話</div>'; return; } const m=chatMeta(ocTeam); if(sub)sub.textContent=m.name+' · #'+ocTeam; body.innerHTML=chatBubbles(ocTeam,'org'); body.scrollTop=body.scrollHeight; }
-  function selectOcTeam(id){ if(!id)return; ocTeam=id; (MESSAGES[id]||[]).forEach(m=>{ if(m.from!=='org') m._seen=true; }); renderOrgChat(); refreshChatBadges(); }
+  function renderOrgChat(){ const body=document.getElementById('ocBody'); if(!body)return; renderOcTabs(); const sub=document.getElementById('ocSub'); if(!ocTeam){ if(sub)sub.textContent='選擇團購單'; body.innerHTML='<div class="cd-empty">選擇上方團購單，開始與店家對話</div>'; return; } const m=chatMeta(ocTeam); if(sub)sub.textContent=m.name+' · #'+ocTeam+' · '+chatPresenceText('shop'); body.innerHTML=chatBubbles(ocTeam,'org'); body.scrollTop=body.scrollHeight; }
+  function selectOcTeam(id){ if(!id)return; ocTeam=id; chatMarkSeen(id,'org'); renderOrgChat(); refreshChatBadges(); }
   function initOrgChat(){ const l=ocTeamList(); if(!ocTeam||!l.some(t=>t.id===ocTeam)){ ocTeam='_general'; } fillStickerBar('ocEmoji','org'); renderOrgChat(); refreshChatBadges(); }
-  function openOrgChat(id){ if(id) ocTeam=id; if(!ocTeam) initOrgChat(); if(ocTeam)(MESSAGES[ocTeam]||[]).forEach(m=>{ if(m.from!=='org') m._seen=true; }); fillStickerBar('ocEmoji','org'); renderOrgChat(); const p=document.getElementById('orgChat'); if(p)p.classList.add('open'); document.body.classList.add('org-chat-open'); refreshChatBadges(); if(typeof updateOrgNav==='function') updateOrgNav(); setTimeout(()=>{ const b=document.getElementById('ocBody'); if(b)b.scrollTop=b.scrollHeight; const i=document.getElementById('ocInput'); if(i&&window.innerWidth>=980)i.focus(); },40); }
+  function openOrgChat(id){ if(id) ocTeam=id; if(!ocTeam) initOrgChat(); if(ocTeam) chatMarkSeen(ocTeam,'org'); fillStickerBar('ocEmoji','org'); renderOrgChat(); const p=document.getElementById('orgChat'); if(p)p.classList.add('open'); document.body.classList.add('org-chat-open'); refreshChatBadges(); if(typeof updateOrgNav==='function') updateOrgNav(); setTimeout(()=>{ const b=document.getElementById('ocBody'); if(b)b.scrollTop=b.scrollHeight; const i=document.getElementById('ocInput'); if(i&&window.innerWidth>=980)i.focus(); },40); }
   function closeOrgChat(){ const p=document.getElementById('orgChat'); if(p)p.classList.remove('open'); document.body.classList.remove('org-chat-open'); if(typeof updateOrgNav==='function') updateOrgNav(); }
-  function sendOrgChat(){ const i=document.getElementById('ocInput'); if(!i)return; const t=i.value.trim(); if(!t||!ocTeam)return; if(!MESSAGES[ocTeam])MESSAGES[ocTeam]=[]; MESSAGES[ocTeam].push({from:'org',text:t,ts:Date.now(),_seen:true}); i.value=''; cdAutoGrow(i); renderOrgChat(); refreshChatBadges(); if(typeof renderChatList==='function')renderChatList(); if(typeof renderChatRoom==='function')renderChatRoom(); }
+  function sendOrgChat(){ const i=document.getElementById('ocInput'); if(!i)return; const t=i.value.trim(); if(!t||!ocTeam)return; if(!MESSAGES[ocTeam])MESSAGES[ocTeam]=[]; MESSAGES[ocTeam].push(chatNewMessage('org',{text:t})); i.value=''; cdAutoGrow(i); renderOrgChat(); refreshChatBadges(); if(typeof renderChatList==='function')renderChatList(); if(typeof renderChatRoom==='function')renderChatRoom(); }
   function ocKey(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendOrgChat(); } }
   window.openOrgChat=openOrgChat; window.closeOrgChat=closeOrgChat; window.selectOcTeam=selectOcTeam; window.sendOrgChat=sendOrgChat; window.ocKey=ocKey; window.renderOrgChat=renderOrgChat; window.renderOcTabs=renderOcTabs; window.initOrgChat=initOrgChat;
   window.openChat=openChat; window.closeChat=closeChat; window.sendChat=sendChat; window.cdAutoGrow=cdAutoGrow; window.cdKey=cdKey; window.refreshChatBadges=refreshChatBadges;
@@ -6962,12 +7010,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     list.unshift({id:'_general',name:'一般聯絡',who:'與店家一般對話'});
     return list;
   }
-  function openChatRoom(){ if(typeof switchView==='function') switchView('chat'); }
+  function openChatRoom(){ chatTouchPresence('shop'); if(typeof switchView==='function') switchView('chat'); }
   function initChatRoomView(){
     chatRole='shop';
+    chatTouchPresence('shop');
     const l=chatRoomTeams();
     if(!chatRoomId || !l.some(x=>x.id===chatRoomId)) chatRoomId=l.length?l[0].id:null;
-    if(chatRoomId) (MESSAGES[chatRoomId]||[]).forEach(m=>{ if(m.from!=='shop') m._seen=true; });
+    if(chatRoomId) chatMarkSeen(chatRoomId,'shop');
     fillStickerBar('crEmoji','room');
     renderChatList(); renderChatRoom();
     const r=document.querySelector('[data-view="chat"] .cr'); if(r) r.classList.remove('room-open');
@@ -6986,7 +7035,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       const last=chatLast(t.id), un=chatUnread(t.id,'shop');
       const prev=last?cdEsc(last.text):'尚無訊息', tm=last?chatFmtT(last.ts):'';
       const isGen=t.id==='_general';
-      return `<button class="cr-item${t.id===chatRoomId?' on':''}${isGen?' cr-item-gen':''}" onclick="selectChatRoom('${t.id}')">
+      return `<button class="cr-item${t.id===chatRoomId?' on':''}${isGen?' cr-item-gen':''}${un?' unread':''}" onclick="selectChatRoom('${t.id}')">
         <div class="cri-top"><span class="cri-nm">${cdEsc(t.name)}</span>${isGen?'<span class="cri-tag">直接對話</span>':''}<span class="cri-tm">${tm}</span></div>
         <div class="cri-prev">${prev}${un?`<span class="cri-badge">${un}</span>`:''}</div>
       </button>`;
@@ -6994,7 +7043,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   function selectChatRoom(id){
     chatRoomId=id; chatRole='shop';
-    (MESSAGES[id]||[]).forEach(m=>{ if(m.from!=='shop') m._seen=true; });
+    chatTouchPresence('shop');
+    chatMarkSeen(id,'shop');
     renderChatList(); renderChatRoom();
     const r=document.querySelector('[data-view="chat"] .cr'); if(r) r.classList.add('room-open');
     refreshChatBadges();
@@ -7005,7 +7055,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if(!cid) return;
     if(!MESSAGES[cid]) MESSAGES[cid]=[];
     chatRoomId=cid; chatRole='shop';
-    (MESSAGES[cid]||[]).forEach(m=>{ if(m.from!=='shop') m._seen=true; });
+    chatTouchPresence('shop');
+    chatMarkSeen(cid,'shop');
     if(typeof switchView==='function') switchView('chat');
     if(typeof renderChatList==='function') renderChatList();
     if(typeof renderChatRoom==='function') renderChatRoom();
@@ -7056,7 +7107,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function sendChatRoom(){
     const i=document.getElementById('crInput'); if(!i) return; const txt=i.value.trim(); if(!txt||!chatRoomId) return;
     if(!MESSAGES[chatRoomId]) MESSAGES[chatRoomId]=[];
-    MESSAGES[chatRoomId].push({from:'shop',text:txt,ts:Date.now(),_seen:true});
+    MESSAGES[chatRoomId].push(chatNewMessage('shop',{text:txt}));
+    chatTouchPresence('shop');
     i.value=''; cdAutoGrow(i); renderChatRoom(); renderChatList(); refreshChatBadges();
   }
   function crKey(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendChatRoom(); } }
@@ -7944,7 +7996,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         if(typeof MESSAGES!=='undefined'){
           if(!MESSAGES[teamId]) MESSAGES[teamId]=[];
           const msg='很抱歉，這次無法接這團 🙏'+(t.rejectReason?('\n原因：'+t.rejectReason):'');
-          MESSAGES[teamId].push({from:'shop',text:msg,ts:Date.now(),_seen:false});
+          MESSAGES[teamId].push(chatNewMessage('shop',{text:msg}));
+          chatTouchPresence('shop');
           if(typeof refreshChatBadges==='function') refreshChatBadges();
           if(typeof renderChatList==='function') renderChatList();
         }
