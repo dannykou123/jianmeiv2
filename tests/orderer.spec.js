@@ -257,6 +257,59 @@ test.describe('orderer page automation', () => {
     expect(issues).toEqual([]);
   });
 
+  test('store mobile nav badges sit on the top right of their icons', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    await openApp(page);
+    await goScreen(page, 'admin');
+    await expect(page.locator('#admin.active #mTabbar')).toBeVisible();
+    await page.evaluate(() => {
+      window.eval(`
+        if(!MESSAGES._general) MESSAGES._general=[];
+        MESSAGES._general.push({from:'org',text:'測試未讀',ts:Date.now(),_seen:false});
+        refreshChatBadges();
+      `);
+    });
+    await expect(page.locator('#dashNavBadgeM')).toBeVisible();
+    await expect(page.locator('#mChatBadge')).toBeVisible();
+
+    const placements = await page.evaluate(() => {
+      function check(tabSelector, badgeSelector) {
+        const tab = document.querySelector(tabSelector);
+        const icon = tab?.querySelector('.ico');
+        const label = tab?.querySelector('.m-tab-label');
+        const badge = document.querySelector(badgeSelector);
+        const ir = icon?.getBoundingClientRect();
+        const lr = label?.getBoundingClientRect();
+        const br = badge?.getBoundingClientRect();
+        return {
+          badgeRightOfIcon: !!ir && !!br && br.left >= ir.left + ir.width * 0.52,
+          badgeAtIconTop: !!ir && !!br && br.top <= ir.top + ir.height * 0.35,
+          badgeAboveLabel: !!lr && !!br && br.bottom < lr.top,
+        };
+      }
+      return {
+        orders: check('#mTabbar .m-tab[data-go="dashboard"]', '#dashNavBadgeM'),
+        chat: check('#mTabbar .m-tab[data-go="chat"]', '#mChatBadge'),
+      };
+    });
+
+    expect(placements.orders).toEqual({
+      badgeRightOfIcon: true,
+      badgeAtIconTop: true,
+      badgeAboveLabel: true,
+    });
+    expect(placements.chat).toEqual({
+      badgeRightOfIcon: true,
+      badgeAtIconTop: true,
+      badgeAboveLabel: true,
+    });
+
+    await page.screenshot({ path: testInfo.outputPath('store-mobile-nav-badges.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
   test('organizer laptop opens chat as drawer and keeps modals above it', async ({ page }, testInfo) => {
     const issues = collectPageIssues(page);
     await page.setViewportSize({ width: 1024, height: 768 });

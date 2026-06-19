@@ -2842,6 +2842,7 @@
     width:42px;height:3px;border-radius:999px;background:linear-gradient(90deg,var(--rose-hi),var(--gold));opacity:.5}
   .m-tab{flex:1;position:relative;background:none;border:none;color:var(--mute);cursor:pointer;
     display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0 2px;font-family:'Noto Sans TC';transition:color .25s,transform .2s}
+  .m-tab-ico{position:relative;z-index:1;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;font-size:0;letter-spacing:0}
   .m-tab .ico{width:24px;height:24px;transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
   .m-tab span{font-size:11px;letter-spacing:1px;transition:.25s}
   .m-tab.on{color:var(--rose-hi)}
@@ -2860,7 +2861,7 @@
   .m-quick-circle .ico{width:26px;height:26px}
   .m-tab-quick:active .m-quick-circle{transform:scale(.9)}
   .m-quick-lbl{font-size:11px;letter-spacing:1px;color:var(--rose-hi);font-weight:700}
-  .m-badge{position:absolute;top:4px;left:calc(50% + 7px);background:var(--rose);color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 4px;box-shadow:0 2px 6px rgba(164,139,118,.5);z-index:2}
+  .m-badge{position:absolute;top:-7px;right:-9px;left:auto;background:var(--rose);color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 4px;box-shadow:0 2px 6px rgba(164,139,118,.5);z-index:2}
   .m-badge[hidden]{display:none}
   /* 右下浮動選單鈕（FAB），位於底部 tab bar 上方 */
   .m-fab{position:fixed;right:16px;bottom:calc(72px + env(safe-area-inset-bottom));z-index:13;
@@ -5015,11 +5016,11 @@
 
   <!-- 手機專用：底部 tab bar（4 個核心功能）-->
   <nav class="m-tabbar" id="mTabbar">
-    <button class="m-tab on" data-go="dashboard"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg><span>訂單</span><span class="m-badge" id="dashNavBadgeM">3</span></button>
-    <button class="m-tab" data-go="chat"><svg class="ico" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 01-9 8.4 9.6 9.6 0 01-3-.5L3 21l1.6-4a8.4 8.4 0 01-1-4 8.4 8.4 0 018.4-8.4A8.4 8.4 0 0121 11.5z"/></svg><span>聊天室</span><span class="m-badge" id="mChatBadge" hidden></span></button>
+    <button class="m-tab on" data-go="dashboard"><span class="m-tab-ico"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg><span class="m-badge" id="dashNavBadgeM">3</span></span><span class="m-tab-label">訂單</span></button>
+    <button class="m-tab" data-go="chat"><span class="m-tab-ico"><svg class="ico" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 01-9 8.4 9.6 9.6 0 01-3-.5L3 21l1.6-4a8.4 8.4 0 01-1-4 8.4 8.4 0 018.4-8.4A8.4 8.4 0 0121 11.5z"/></svg><span class="m-badge" id="mChatBadge" hidden></span></span><span class="m-tab-label">聊天室</span></button>
     <button class="m-tab-quick" onclick="openQuick()" aria-label="快速下單"><span class="m-quick-circle"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span class="m-quick-lbl">快速下單</span></button>
-    <button class="m-tab" data-go="reports"><svg class="ico" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>報表</span></button>
-    <button class="m-tab" data-go="map"><svg class="ico" viewBox="0 0 24 24"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3zM9 3v15M15 6v15"/></svg><span>地圖</span></button>
+    <button class="m-tab" data-go="reports"><span class="m-tab-ico"><svg class="ico" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span><span class="m-tab-label">報表</span></button>
+    <button class="m-tab" data-go="map"><span class="m-tab-ico"><svg class="ico" viewBox="0 0 24 24"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3zM9 3v15M15 6v15"/></svg></span><span class="m-tab-label">地圖</span></button>
   </nav>
 
   <!-- 手機專用：選單抽屜（設定類功能 + 登出）-->
