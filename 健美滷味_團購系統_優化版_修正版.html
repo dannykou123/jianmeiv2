@@ -3277,10 +3277,16 @@
   .org-panel{padding:16px 20px 6px}
   .dept-groups{display:flex;flex-direction:column;gap:14px}
   .dept-group{border:1px solid color-mix(in srgb,var(--edge-hi) 72%,transparent);border-radius:16px;background:color-mix(in srgb,var(--card) 78%,transparent);padding:10px 10px 12px}
-  .dept-group-h{display:flex;align-items:center;gap:8px;padding:2px 2px 9px;border-bottom:1px solid color-mix(in srgb,var(--edge) 70%,transparent);color:var(--ink);font-size:14px;font-weight:900}
+  .dept-group.is-collapsed{padding-bottom:10px}
+  .dept-group-h{appearance:none;width:100%;display:flex;align-items:center;gap:8px;padding:2px 2px 9px;border:0;border-bottom:1px solid color-mix(in srgb,var(--edge) 70%,transparent);background:transparent;color:var(--ink);font-family:inherit;font-size:14px;font-weight:900;text-align:left;cursor:pointer}
+  .dept-group-h:focus-visible{outline:2px solid color-mix(in srgb,var(--brand) 50%,transparent);outline-offset:3px;border-radius:10px}
+  .dept-group.is-collapsed .dept-group-h{padding-bottom:2px;border-bottom:0}
   .dept-group-h .dg-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dept-group-h .dg-meta{margin-left:auto;color:var(--sub);font-size:12px;font-weight:700;white-space:nowrap}
+  .dg-chev{width:16px;height:16px;color:var(--mute);transition:transform .25s;flex-shrink:0}
+  .dept-group.is-collapsed .dg-chev{transform:rotate(-90deg)}
   .dept-group .person-card{margin-top:10px}
+  .dept-group.is-collapsed .person-card{display:none}
   /* 依訂購人：每人一張卡 */
   .person-card{position:relative;z-index:0;background:var(--card);border:1px solid var(--edge);border-radius:16px;padding:11px 13px;margin-top:10px}
   .person-card.open{z-index:3}
@@ -9876,6 +9882,20 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     set('ffCount',s.people); set('ffTotal',s.total.toLocaleString());
     set('orgPeopleCount',s.people); set('orgPeopleTotal',s.total.toLocaleString());
   }
+  const deptCollapseState=Object.create(null);
+  function deptCollapseKey(dept){
+    const teamKey=currentTeamId||'_default';
+    return teamKey+'::'+(cleanDeptName(dept)||'未填單位');
+  }
+  function isDeptCollapsed(dept){ return !!deptCollapseState[deptCollapseKey(dept)]; }
+  function toggleDeptGroup(btn){
+    const group=btn&&btn.closest?btn.closest('.dept-group'):null;
+    if(!group) return;
+    const dept=group.dataset.dept||'未填單位';
+    const key=deptCollapseKey(dept);
+    deptCollapseState[key]=!deptCollapseState[key];
+    renderPeople();
+  }
   function renderPeople(){
     const pending = ROSTER.filter(n=>!ORDERS.some(o=>o.name===n));
     const personCard=(o,i)=>{
@@ -9914,11 +9934,18 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       g.total+=orderTotal(o);
       g.cards.push(personCard(o,i));
     });
-    const cards = deptGroups.map(g=>`
-      <section class="dept-group" data-dept="${cdEsc(g.dept)}">
-        <div class="dept-group-h"><span class="dg-name">${cdEsc(g.dept)}</span><span class="dg-meta">${g.people} 人 · $${g.total.toLocaleString()}</span></div>
+    const cards = deptGroups.map(g=>{
+      const collapsed=isDeptCollapsed(g.dept);
+      return `
+      <section class="dept-group${collapsed?' is-collapsed':''}" data-dept="${cdEsc(g.dept)}">
+        <button type="button" class="dept-group-h" aria-expanded="${collapsed?'false':'true'}" onclick="toggleDeptGroup(this)">
+          <span class="dg-name">${cdEsc(g.dept)}</span>
+          <span class="dg-meta">${g.people} 人 · $${g.total.toLocaleString()}</span>
+          <svg class="ico dg-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
         ${g.cards.join('')}
-      </section>`).join('');
+      </section>`;
+    }).join('');
     // 付款統計：人數 + 已收/未收金額
     const paidCount=ORDERS.filter(o=>o.paid).length;
     const paidAmt=ORDERS.filter(o=>o.paid).reduce((s,o)=>s+orderTotal(o),0);

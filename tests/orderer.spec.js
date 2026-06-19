@@ -884,6 +884,45 @@ test.describe('orderer page automation', () => {
     expect(issues).toEqual([]);
   });
 
+  test('organizer department groups can collapse independently', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 1024, height: 768 });
+
+    await openApp(page);
+    await openOrganizerDetail(page);
+
+    const adminGroup = page.locator('#orgPeople .dept-group[data-dept="行政部"]');
+    const financeGroup = page.locator('#orgPeople .dept-group[data-dept="財務部"]');
+    await expect(adminGroup.locator('.dept-group-h')).toContainText('行政部');
+    await expect(adminGroup.locator('.dept-group-h .dg-meta')).toContainText('2 人');
+
+    await expect(adminGroup.locator('.person-card')).toHaveCount(2);
+    await expect(adminGroup.locator('.person-card').first()).toBeVisible();
+    await expect(financeGroup.locator('.person-card')).toHaveCount(1);
+    await expect(financeGroup.locator('.person-card').first()).toBeVisible();
+
+    await adminGroup.locator('.dept-group-h').click();
+    await expect(adminGroup).toHaveClass(/is-collapsed/);
+    await expect(adminGroup.locator('.dept-group-h')).toHaveAttribute('aria-expanded', 'false');
+    await expect(adminGroup.locator('.person-card').first()).toBeHidden();
+    await expect(financeGroup.locator('.person-card').first()).toBeVisible();
+
+    await page.evaluate(() => window.renderPeople());
+    await expect(adminGroup).toHaveClass(/is-collapsed/);
+    await expect(adminGroup.locator('.person-card').first()).toBeHidden();
+
+    await adminGroup.locator('.dept-group-h').click();
+    await expect(adminGroup).not.toHaveClass(/is-collapsed/);
+    await expect(adminGroup.locator('.dept-group-h')).toHaveAttribute('aria-expanded', 'true');
+    await expect(adminGroup.locator('.person-card').first()).toBeVisible();
+
+    await adminGroup.locator('.person-card').first().locator('.person-h').click();
+    await expect(adminGroup.locator('.person-card').first().locator('.person-items')).toBeVisible();
+
+    await page.screenshot({ path: testInfo.outputPath('organizer-dept-collapse.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
   test('preset department order is grouped in organizer view', async ({ page }, testInfo) => {
     const issues = collectPageIssues(page);
     await page.setViewportSize({ width: 1440, height: 900 });
