@@ -10113,7 +10113,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function shareLink(){ copyTeamLink(); }
   function toggleTeamMore(){ const m=document.getElementById('teamMore'); if(!m) return; const show=m.hidden; m.hidden=!show; const b=document.getElementById('teamMoreBtn'); if(b) b.classList.toggle('on',show); }
   window.toggleTeamMore=toggleTeamMore;
-  function toggleStatusMenu(e){ if(e&&e.stopPropagation)e.stopPropagation(); const m=document.getElementById('teamStatusMenu'); if(!m)return; const show=m.hidden; m.hidden=!show; const b=document.getElementById('teamStatusBtn'); if(b) b.classList.toggle('open',show); }
+  function toggleStatusMenu(e){
+    if(e&&e.stopPropagation)e.stopPropagation();
+    const m=document.getElementById('teamStatusMenu'); if(!m)return;
+    if(m.parentElement!==document.body) document.body.appendChild(m);
+    const show=m.hidden;
+    m.hidden=!show;
+    const b=document.getElementById('teamStatusBtn'); if(b) b.classList.toggle('open',show);
+  }
   function closeStatusMenu(){ const m=document.getElementById('teamStatusMenu'); if(m) m.hidden=true; const b=document.getElementById('teamStatusBtn'); if(b) b.classList.remove('open'); }
   function togglePerson(h){ const c=h&&h.closest?h.closest('.person-card'):null; if(!c) return; const willOpen=!c.classList.contains('open'); c.classList.toggle('open');
     // 展開時把內容捲進可視範圍，避免被底部固定送單列蓋住

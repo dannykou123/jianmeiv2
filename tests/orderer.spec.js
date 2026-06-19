@@ -688,6 +688,41 @@ test.describe('orderer page automation', () => {
     expect(issues).toEqual([]);
   });
 
+  test('organizer team settings menu is not confined inside the overview card', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    await openApp(page);
+    await openOrganizerDetail(page);
+    await page.locator('#teamStatusBtn').click();
+    await expect(page.locator('#teamStatusMenu')).toBeVisible();
+
+    const placement = await page.evaluate(() => {
+      const menu = document.querySelector('#teamStatusMenu');
+      const card = document.querySelector('#teamOpen');
+      const menuRect = menu?.getBoundingClientRect();
+      const cardRect = card?.getBoundingClientRect();
+      return {
+        parentIsBody: menu?.parentElement === document.body,
+        coversViewport: !!menuRect &&
+          menuRect.top <= 1 &&
+          menuRect.left <= 1 &&
+          menuRect.right >= window.innerWidth - 1 &&
+          menuRect.bottom >= window.innerHeight - 1,
+        tallerThanCard: !!menuRect && !!cardRect && menuRect.height > cardRect.height * 1.8,
+      };
+    });
+
+    expect(placement).toEqual({
+      parentIsBody: true,
+      coversViewport: true,
+      tallerThanCard: true,
+    });
+
+    await page.screenshot({ path: testInfo.outputPath('organizer-team-settings-menu.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
   test('organizer detail keeps add order in the people toolbar on desktop', async ({ page }, testInfo) => {
     const issues = collectPageIssues(page);
     await page.setViewportSize({ width: 1024, height: 768 });
