@@ -507,16 +507,19 @@ test.describe('orderer page automation', () => {
     await expect(page.locator('#orgProfilePanel.show')).toBeVisible();
     await page.locator('#orgProfileBasicToggle').click();
     await expect(page.locator('#orgProfileBasicFields')).toBeVisible();
+    await expect(page.locator('#orgProfileCompanyInput')).toHaveCount(0);
+    await expect(page.locator('#orgDefaultContactName')).toHaveCount(0);
+    await expect(page.locator('#orgProfileBasicFields')).not.toContainText('顯示身分');
+    await expect(page.locator('#orgProfileBasicFields')).not.toContainText('預設聯絡人');
     await page.locator('#orgProfileNameInput').fill('林小美');
-    await page.locator('#orgProfileCompanyInput').fill('健美南港團主');
     await page.locator('#orgDefaultAddress').fill('台北市南港區測試路 88 號');
-    await page.locator('#orgDefaultContactName').fill('林小美');
     await page.locator('#orgDefaultContactPhone').fill('0912-345-678');
     await page.locator('#orgProfileBasicSave').click();
     await page.locator('#orgProfileClose').click();
 
     await page.locator('#orgProfileBtn').click();
-    await expect(page.locator('#orgProfileName')).toContainText('林小美・健美南港團主');
+    await expect(page.locator('#orgProfileName')).toContainText('林小美');
+    await expect(page.locator('#orgProfileName')).not.toContainText('健美南港團主');
     await page.locator('#orgProfileBasicToggle').click();
     await expect(page.locator('#orgDefaultAddress')).toHaveValue('台北市南港區測試路 88 號');
     await page.locator('#orgProfileClose').click();
