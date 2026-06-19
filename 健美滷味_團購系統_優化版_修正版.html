@@ -3296,7 +3296,6 @@
   .person-top{display:flex;align-items:baseline;gap:8px}
   .person-summary{font-size:12.5px;color:var(--sub);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .person-nm{font-weight:700;font-size:16px}
-  .person-dept{font-size:13px;color:var(--mute)}
   .person-amt{margin-left:auto;font-family:'Noto Serif TC',serif;font-weight:900;font-size:18px;color:var(--gold)}
   .person-status-line{display:flex;align-items:center;gap:7px;margin-top:4px;flex-wrap:wrap}
   .person-status-line .paid-badge,.person-status-line .unpaid-badge{margin-left:0}
@@ -9888,8 +9887,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         <div class="person-h" onclick="togglePerson(this)">
           <div class="person-av${o.paid?' paid':''}">${cdEsc((o.name||'?').charAt(0))}</div>
           <div class="person-mid">
-            <div class="person-top"><span class="person-nm">${cdEsc(o.name)}</span><span class="person-dept">${cdEsc(o.dept||'')}</span></div>
-            <div class="person-status-line"><span class="${o.paid?'paid-badge':'unpaid-badge'}">${o.paid?'已付款':'未付款'}</span><span class="person-summary">${itemCount} 項商品，展開看明細</span></div>
+            <div class="person-top"><span class="person-nm">${cdEsc(o.name)}</span></div>
+            <div class="person-status-line"><span class="${o.paid?'paid-badge':'unpaid-badge'}">${o.paid?'已付款':'未付款'}</span><span class="person-summary">${itemCount} 項商品</span></div>
             ${notePreview}
           </div>
           <div class="person-amt">$${orderTotal(o).toLocaleString()}</div>

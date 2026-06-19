@@ -861,11 +861,18 @@ test.describe('orderer page automation', () => {
       window.eval("ORDERS[0].note='下午 3 點前請先收款'; renderPeople();");
     });
 
+    const firstGroup = page.locator('#orgPeople .dept-group[data-dept="行政部"]');
+    await expect(firstGroup.locator('.dept-group-h')).toContainText('行政部');
+    await expect(firstGroup.locator('.dept-group-h .dg-meta')).toContainText('2 人');
+
     const firstCard = page.locator('#orgPeople .person-card').first();
+    await expect(firstCard.locator('.person-dept')).toHaveCount(0);
     await expect(firstCard.locator('.person-note-preview')).toBeVisible();
     await expect(firstCard.locator('.person-note-preview')).toContainText('下午 3 點前請先收款');
     await expect(firstCard.locator('.person-items')).toBeHidden();
     const collapsedSummary = await firstCard.locator('.person-summary').innerText();
+    expect(collapsedSummary).toBe('7 項商品');
+    expect(collapsedSummary).not.toContain('展開看明細');
     expect(collapsedSummary).not.toContain('大綜合');
 
     await firstCard.locator('.person-h').click();
