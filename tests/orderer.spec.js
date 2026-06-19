@@ -718,6 +718,11 @@ test.describe('orderer page automation', () => {
       coversViewport: true,
       tallerThanCard: true,
     });
+    await expect(page.locator('#teamStatusMenu .status-opt .so-t')).toHaveText([
+      '編輯團名',
+      '暫停收單',
+      '關閉團購',
+    ]);
 
     await page.screenshot({ path: testInfo.outputPath('organizer-team-settings-menu.png'), fullPage: false });
     expect(issues).toEqual([]);
