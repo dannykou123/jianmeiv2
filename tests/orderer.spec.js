@@ -928,7 +928,7 @@ test.describe('orderer page automation', () => {
         contactPhone: '0900-000-000',
         start: '2026-05-23',
         deadline: '2099-06-20T18:00',
-        deptOptions: ['行政部', '財務部'],
+        deptOptions: ['企劃部', '財務部'],
         pickupAt: '2099-06-21',
         deliverAt: '2099-06-20T12:00',
         submitStatus: null,
@@ -937,6 +937,8 @@ test.describe('orderer page automation', () => {
       });
       enterTeam(t.id);
     });
+    await expect(page.locator('#teamDeptWrap')).toHaveCount(0);
+    await expect(page.locator('.org3-acts button', { hasText: '單位' })).toHaveCount(0);
 
     await page.locator('#teamStatusBtn').click();
     await page.locator('#teamEditDetailsBtn').click();
@@ -944,8 +946,12 @@ test.describe('orderer page automation', () => {
     await expect(page.locator('#newTeamTitle')).toHaveText('編輯團購資料');
     await expect(page.locator('#ntStart')).toHaveCount(0);
     await expect(page.locator('#ntDeliver')).toHaveCount(0);
+    await expect(page.locator('#ntDeptOptions')).toHaveCount(0);
     await expect(page.locator('#newTeamModal')).not.toContainText('開團日期');
     await expect(page.locator('#newTeamModal')).toContainText('取貨時間');
+    await expect(page.locator('#ntDeptChips')).toBeVisible();
+    await expect(page.locator('#ntDeptChips .team-dept-tag', { hasText: '企劃部' })).toBeVisible();
+    await expect(page.locator('#ntDeptChips .team-dept-tag', { hasText: '財務部' })).toBeVisible();
     await expect(page.locator('#ntName')).toHaveValue('編輯前團購');
     await expect(page.locator('#ntAddress')).toHaveValue('原本地址');
     await expect(page.locator('#ntContactName')).toHaveValue('原本聯絡人');
@@ -972,7 +978,9 @@ test.describe('orderer page automation', () => {
     await page.locator('#ntContactName').fill('新聯絡人');
     await page.locator('#ntContactPhone').fill('0912-345-678');
     await page.locator('#ntDeadline').fill('2099-06-23T17:30');
-    await page.locator('#ntDeptOptions').fill('行政部、研發部');
+    await page.locator('#ntDeptChips button[aria-label="移除 企劃部"]').click();
+    await page.locator('#ntDeptInput').fill('研發部');
+    await page.locator('#ntDeptAdd').click();
     await page.locator('#ntPickup').fill('2099-06-24T15:45');
     await page.locator('#newTeamApply').click();
 
@@ -1001,9 +1009,16 @@ test.describe('orderer page automation', () => {
       pickupAt: '2099-06-24T15:45',
       deliverAt: '',
     });
-    expect(editedTeam.deptOptions.slice(0, 2)).toEqual(['行政部', '研發部']);
-    expect(editedTeam.deptOptions).toEqual(expect.arrayContaining(['財務部', '業務部']));
+    expect(editedTeam.deptOptions).toEqual(expect.arrayContaining(['財務部', '研發部']));
+    expect(editedTeam.deptOptions).not.toContain('企劃部');
     await expect(page.locator('#orgTitle')).toHaveText('編輯後下午茶團');
+    await goScreen(page, 'orderer');
+    const ordererDeptOptions = await page.locator('#ordDept option').evaluateAll(options => options.map(option => option.value));
+    expect(ordererDeptOptions).toEqual(expect.arrayContaining(['財務部', '研發部']));
+    expect(ordererDeptOptions).not.toContain('企劃部');
+    await goScreen(page, 'organizer');
+    await page.evaluate(() => enterTeam(currentTeamId));
+    await expect(page.locator('#organizer.active #orgDetailView')).toBeVisible();
 
     await page.evaluate(() => {
       const t = TEAMS.find(team => team.id === currentTeamId);
@@ -1033,21 +1048,27 @@ test.describe('orderer page automation', () => {
     await expect(page.locator('#newTeamTitle')).toHaveText('開新團');
     await expect(page.locator('#ntStart')).toHaveCount(0);
     await expect(page.locator('#ntDeliver')).toHaveCount(0);
+    await expect(page.locator('#ntDeptOptions')).toHaveCount(0);
     await expect(page.locator('#newTeamModal')).not.toContainText('開團日期');
     await expect(page.locator('#newTeamModal')).toContainText('取貨時間');
+    await expect(page.locator('#ntDeptChips')).toBeVisible();
     await expect(page.locator('#ntPickup')).toHaveAttribute('type', 'datetime-local');
     await page.locator('#ntName').fill('只用取貨時間測試團');
+    await page.locator('#ntDeptInput').fill('客服部、門市部');
+    await page.locator('#ntDeptAdd').click();
     await page.locator('#ntPickup').fill('2099-06-25T12:30');
     await page.locator('#newTeamApply').click();
     await expect(page.locator('#newTeamModal.show')).toHaveCount(0);
 
     const createdTeam = await page.evaluate(() => ({
       name: TEAMS[0].name,
+      deptOptions: TEAMS[0].deptOptions,
       pickupAt: TEAMS[0].pickupAt,
       deliverAt: TEAMS[0].deliverAt || '',
     }));
     expect(createdTeam).toEqual({
       name: '只用取貨時間測試團',
+      deptOptions: expect.arrayContaining(['客服部', '門市部']),
       pickupAt: '2099-06-25T12:30',
       deliverAt: '',
     });

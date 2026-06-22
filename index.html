@@ -5932,26 +5932,12 @@
           <button id="teamPaySetBtn" onclick="openPaySetup()">收款</button>
           <button id="remindUnpaidBtn" onclick="remindUnpaid()">催款<span class="act-badge" id="unpaidBadge" hidden></span></button>
           <button onclick="toggleTeamNote()">備註</button>
-          <button onclick="toggleTeamDepts()">單位</button>
           <button onclick="printTeamA4()">列印</button>
         </div>
         <div class="team-note" id="teamNoteWrap">
           <div class="team-note-body">
             <div class="tn-edit-h">給訂購人看的備註</div>
             <textarea id="teamHostNote" rows="3" placeholder="例：滿 $1500 免運、費用請匯款或現金給我…" oninput="saveHostNote()"></textarea>
-          </div>
-        </div>
-        <div class="team-depts" id="teamDeptWrap">
-          <div class="team-depts-body">
-            <div>
-              <div class="td-edit-h">訂購人單位</div>
-              <div class="td-edit-sub">訂購人會先看到這些單位；若沒有合適選項，仍可選「其他」自行輸入。</div>
-            </div>
-            <div class="team-dept-tags" id="teamDeptTags"></div>
-            <div class="team-dept-add">
-              <input type="text" id="teamDeptInput" placeholder="新增單位，例如：設計部" onkeydown="if(event.key==='Enter'){event.preventDefault();addTeamDept();}">
-              <button type="button" onclick="addTeamDept()">新增</button>
-            </div>
           </div>
         </div>
       </div>
@@ -6059,8 +6045,15 @@
           <input type="text" id="ntName" placeholder="例：週五下午茶滷味團"></label>
         <label class="fld-l" style="margin-top:12px">收單截止
           <input type="datetime-local" id="ntDeadline"></label>
-        <label class="fld-l" style="margin-top:12px">訂購人單位
-          <textarea id="ntDeptOptions" rows="2" placeholder="行政部、財務部、業務部、人資、總務、工程"></textarea></label>
+        <div class="fld-l team-form-depts" style="margin-top:12px">
+          <span>訂購人單位</span>
+          <div class="td-edit-sub">訂購人會先看到這些單位；若沒有合適選項，仍可選「其他」自行輸入。</div>
+          <div class="team-dept-tags" id="ntDeptChips"></div>
+          <div class="team-dept-add">
+            <input type="text" id="ntDeptInput" placeholder="新增單位，例如：設計部" onkeydown="if(event.key==='Enter'){event.preventDefault();addTeamFormDept();}">
+            <button type="button" id="ntDeptAdd" onclick="addTeamFormDept()">新增</button>
+          </div>
+        </div>
         <label class="fld-l" style="margin-top:12px">聯絡地址<span style="font-weight:400;color:var(--sub)">（給店家送單用）</span>
           <input type="text" id="ntAddress" placeholder="例：台北市南港區..."></label>
         <div class="team-contact-row">
@@ -10282,6 +10275,29 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     box.innerHTML=opts.length?opts.map(d=>`<span class="team-dept-tag">${cdEsc(d)}<button type="button" aria-label="移除 ${cdEsc(d)}" onclick="removeTeamDept(decodeURIComponent('${encodeURIComponent(d)}'))">×</button></span>`).join(''):'<span class="td-edit-sub">尚未設定單位</span>';
     if(typeof renderOrdererDeptOptions==='function') renderOrdererDeptOptions();
   }
+  let teamFormDeptOptions=[];
+  function setTeamFormDeptOptions(list){
+    teamFormDeptOptions=uniqueDeptOptions((list&&list.length)?list:DEFAULT_DEPT_OPTIONS);
+    renderTeamFormDeptOptions();
+  }
+  function renderTeamFormDeptOptions(){
+    const box=document.getElementById('ntDeptChips'); if(!box) return;
+    box.innerHTML=teamFormDeptOptions.length
+      ? teamFormDeptOptions.map(d=>`<span class="team-dept-tag">${cdEsc(d)}<button type="button" aria-label="移除 ${cdEsc(d)}" onclick="removeTeamFormDept(decodeURIComponent('${encodeURIComponent(d)}'))">×</button></span>`).join('')
+      : '<span class="td-edit-sub">尚未設定單位</span>';
+  }
+  function addTeamFormDept(){
+    const input=document.getElementById('ntDeptInput');
+    const additions=deptOptionListFromText(input?input.value:'');
+    if(!additions.length){ if(input) input.focus(); return; }
+    setTeamFormDeptOptions([...teamFormDeptOptions,...additions]);
+    if(input) input.value='';
+  }
+  function removeTeamFormDept(name){
+    const target=cleanDeptName(name);
+    teamFormDeptOptions=teamFormDeptOptions.filter(d=>d!==target);
+    renderTeamFormDeptOptions();
+  }
   function toggleTeamDepts(){
     const wrap=document.getElementById('teamDeptWrap'); if(!wrap) return;
     wrap.classList.toggle('open');
@@ -10309,6 +10325,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   window.toggleTeamDepts=toggleTeamDepts;
   window.addTeamDept=addTeamDept;
   window.removeTeamDept=removeTeamDept;
+  window.addTeamFormDept=addTeamFormDept;
+  window.removeTeamFormDept=removeTeamFormDept;
   function fmtDeadline(dl){
     if(!dl)return '—';
     const d=new Date(dl); if(isNaN(d))return dl;
@@ -10789,8 +10807,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       nd.value=(t&&t.deadline)||defaultTeamDeadline(now);
       nd.min=t?'':toLocalDt(now);
     }
-    const dept=document.getElementById('ntDeptOptions');
-    if(dept) dept.value=(t&&Array.isArray(t.deptOptions)&&t.deptOptions.length?t.deptOptions:DEFAULT_DEPT_OPTIONS).join('、');
+    setTeamFormDeptOptions(t?teamDeptOptions(t):DEFAULT_DEPT_OPTIONS);
     const profile=t?null:getOrgProfile();
     set('ntAddress',t?t.address:(profile.defaultAddress||''));
     set('ntContactName',t?t.contactName:(profile.defaultContactName||profile.name||''));
@@ -10823,8 +10840,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const todayYmd=toLocalDt(new Date()).slice(0,10);
     if(!existing && deadline && new Date(deadline).getTime() < Date.now()-60000){ toast('收單截止不可早於現在時間',true); return; }
     const pickupAt=document.getElementById('ntPickup')?.value||'';
-    const deptText=deptOptionListFromText(document.getElementById('ntDeptOptions')?.value);
-    const deptOptions=uniqueDeptOptions(deptText.length?deptText:DEFAULT_DEPT_OPTIONS);
+    const deptOptions=uniqueDeptOptions(teamFormDeptOptions.length?teamFormDeptOptions:DEFAULT_DEPT_OPTIONS);
     const address=(document.getElementById('ntAddress')?.value||'').trim();
     const contactName=(document.getElementById('ntContactName')?.value||'').trim();
     const contactPhone=(document.getElementById('ntContactPhone')?.value||'').trim();
