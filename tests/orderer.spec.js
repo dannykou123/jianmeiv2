@@ -4,7 +4,7 @@ const { pathToFileURL } = require('node:url');
 const { test, expect } = require('@playwright/test');
 
 const projectRoot = path.resolve(__dirname, '..');
-const appFileName = fs.readdirSync(projectRoot).find(name => name.endsWith('.html') && name !== 'index.html');
+const appFileName = fs.readdirSync(projectRoot).find(name => name.endsWith('.html') && name !== 'index.html') || 'index.html';
 
 if (!appFileName) {
   throw new Error('Cannot find the legacy app HTML file.');
@@ -904,12 +904,153 @@ test.describe('orderer page automation', () => {
       tallerThanCard: true,
     });
     await expect(page.locator('#teamStatusMenu .status-opt .so-t')).toHaveText([
-      '編輯團名',
+      '編輯團購資料',
       '暫停收單',
       '關閉團購',
     ]);
 
     await page.screenshot({ path: testInfo.outputPath('organizer-team-settings-menu.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
+  test('organizer can edit pre-submit team details and clears delivery date', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    await openApp(page);
+    await openOrganizerDetail(page);
+    await page.evaluate(() => {
+      const t = TEAMS.find(team => team.id === currentTeamId);
+      Object.assign(t, {
+        name: '編輯前團購',
+        address: '原本地址',
+        contactName: '原本聯絡人',
+        contactPhone: '0900-000-000',
+        deadline: '2099-06-20T18:00',
+        deptOptions: ['行政部', '財務部'],
+        pickupAt: '2099-06-21',
+        deliverAt: '2099-06-20T12:00',
+        submitStatus: null,
+        open: true,
+        paused: false,
+      });
+      enterTeam(t.id);
+    });
+
+    await page.locator('#teamStatusBtn').click();
+    await page.locator('#teamEditDetailsBtn').click();
+    await expect(page.locator('#newTeamModal.show')).toBeVisible();
+    await expect(page.locator('#newTeamTitle')).toHaveText('編輯團購資料');
+    await expect(page.locator('#ntDeliver')).toHaveCount(0);
+    await expect(page.locator('#ntName')).toHaveValue('編輯前團購');
+    await expect(page.locator('#ntAddress')).toHaveValue('原本地址');
+    await expect(page.locator('#ntContactName')).toHaveValue('原本聯絡人');
+    await expect(page.locator('#ntContactPhone')).toHaveValue('0900-000-000');
+    await expect(page.locator('#ntDeadline')).toHaveValue('2099-06-20T18:00');
+    await expect(page.locator('#ntPickup')).toHaveValue('2099-06-21');
+
+    await page.locator('#ntName').fill('編輯後下午茶團');
+    await page.locator('#ntAddress').fill('新地址 88 號');
+    await page.locator('#ntContactName').fill('新聯絡人');
+    await page.locator('#ntContactPhone').fill('0912-345-678');
+    await page.locator('#ntDeadline').fill('2099-06-23T17:30');
+    await page.locator('#ntDeptOptions').fill('行政部、研發部');
+    await page.locator('#ntPickup').fill('2099-06-24');
+    await page.locator('#newTeamApply').click();
+
+    await expect(page.locator('#newTeamModal.show')).toHaveCount(0);
+    const editedTeam = await page.evaluate(() => {
+      const t = TEAMS.find(team => team.id === currentTeamId);
+      return {
+        name: t.name,
+        address: t.address,
+        contactName: t.contactName,
+        contactPhone: t.contactPhone,
+        deadline: t.deadline,
+        deptOptions: t.deptOptions,
+        pickupAt: t.pickupAt,
+        deliverAt: t.deliverAt || '',
+      };
+    });
+    expect(editedTeam).toMatchObject({
+      name: '編輯後下午茶團',
+      address: '新地址 88 號',
+      contactName: '新聯絡人',
+      contactPhone: '0912-345-678',
+      deadline: '2099-06-23T17:30',
+      pickupAt: '2099-06-24',
+      deliverAt: '',
+    });
+    expect(editedTeam.deptOptions.slice(0, 2)).toEqual(['行政部', '研發部']);
+    expect(editedTeam.deptOptions).toEqual(expect.arrayContaining(['財務部', '業務部']));
+    await expect(page.locator('#orgTitle')).toHaveText('編輯後下午茶團');
+
+    await page.evaluate(() => {
+      const t = TEAMS.find(team => team.id === currentTeamId);
+      t.submitStatus = 'pending';
+      enterTeam(t.id);
+    });
+    await page.locator('#teamStatusBtn').click();
+    await page.locator('#teamEditDetailsBtn').click();
+    await expect(page.locator('#newTeamModal.show')).toHaveCount(0);
+
+    await page.screenshot({ path: testInfo.outputPath('organizer-edit-team-details.png'), fullPage: false });
+    expect(issues).toEqual([]);
+  });
+
+  test('new teams and shop submission use pickup time without delivery date', async ({ page }, testInfo) => {
+    const issues = collectPageIssues(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    await openApp(page);
+    await openOrganizerList(page);
+    await page.evaluate(() => {
+      if (typeof window.setMaxTeams === 'function') window.setMaxTeams(9);
+    });
+
+    await page.evaluate(() => window.openNewTeam());
+    await expect(page.locator('#newTeamModal.show')).toBeVisible();
+    await expect(page.locator('#newTeamTitle')).toHaveText('開新團');
+    await expect(page.locator('#ntDeliver')).toHaveCount(0);
+    await page.locator('#ntName').fill('只用取貨日測試團');
+    await page.locator('#ntPickup').fill('2099-06-25');
+    await page.locator('#newTeamApply').click();
+    await expect(page.locator('#newTeamModal.show')).toHaveCount(0);
+
+    const createdTeam = await page.evaluate(() => ({
+      name: TEAMS[0].name,
+      pickupAt: TEAMS[0].pickupAt,
+      deliverAt: TEAMS[0].deliverAt || '',
+    }));
+    expect(createdTeam).toEqual({
+      name: '只用取貨日測試團',
+      pickupAt: '2099-06-25',
+      deliverAt: '',
+    });
+
+    await page.locator('#teamList .tcard').first().click();
+    await page.evaluate(() => window.submitToShop());
+    await expect(page.locator('#submitModal.show')).toBeVisible();
+    await expect(page.locator('#submitPickupAt')).toBeVisible();
+    await expect(page.locator('#submitModal')).toContainText('訂單取貨時間');
+    await page.locator('#submitPickupAt').fill('2099-06-25T12:30');
+    await page.evaluate(() => window.confirmSubmitToShop());
+    await expect(page.locator('#submitModal.show')).toHaveCount(0);
+
+    const submittedTeam = await page.evaluate(() => ({
+      submitStatus: TEAMS[0].submitStatus,
+      pickupAt: TEAMS[0].pickupAt,
+      deliverAt: TEAMS[0].deliverAt || '',
+      open: TEAMS[0].open,
+    }));
+    expect(submittedTeam).toEqual({
+      submitStatus: 'pending',
+      pickupAt: '2099-06-25T12:30',
+      deliverAt: '',
+      open: false,
+    });
+
+    await page.screenshot({ path: testInfo.outputPath('organizer-new-team-pickup-only.png'), fullPage: false });
     expect(issues).toEqual([]);
   });
 

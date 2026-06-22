@@ -5906,7 +5906,7 @@
         <div class="status-modal" id="teamStatusMenu" hidden onclick="if(event.target===this)closeStatusMenu()">
           <div class="status-sheet">
             <div class="status-sheet-h">團購設定</div>
-            <button class="status-opt" onclick="editTeamName();closeStatusMenu()"><svg class="ico" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.1 2.1 0 013 3L12 15l-4 1 1-4z"/></svg><span class="so-t">編輯團名</span></button>
+            <button class="status-opt" id="teamEditDetailsBtn" onclick="openEditTeamDetails();closeStatusMenu()"><svg class="ico" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.1 2.1 0 013 3L12 15l-4 1 1-4z"/></svg><span class="so-t">編輯團購資料</span></button>
             <button class="status-opt" id="teamPauseBtn" onclick="togglePauseTeam();closeStatusMenu()"><svg class="ico" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><span class="so-t">暫停收單</span></button>
             <button class="status-opt" id="teamToggleBtn" onclick="toggleCurrentTeam();closeStatusMenu()"><svg class="ico" viewBox="0 0 24 24"><path d="M18.4 6.6a9 9 0 11-12.8 0"/><path d="M12 2v8"/></svg><span class="so-t">關閉團購</span></button>
             <button class="status-cancel" onclick="closeStatusMenu()">取消</button>
@@ -6051,7 +6051,7 @@
   <!-- 開新團 modal -->
   <div class="date-modal" id="newTeamModal" onclick="if(event.target===this)closeNewTeam()">
     <div class="date-box" style="display:flex;flex-direction:column">
-      <div class="date-box-h"><span>開新團</span><button onclick="closeNewTeam()">&times;</button></div>
+      <div class="date-box-h"><span id="newTeamTitle">開新團</span><button onclick="closeNewTeam()">&times;</button></div>
       <div style="padding-top:4px">
         <label class="fld-l">團購名稱
           <input type="text" id="ntName" placeholder="例：週五下午茶滷味團"></label>
@@ -6069,16 +6069,12 @@
           <label class="fld-l" style="flex:1;margin:0">聯絡電話
             <input type="tel" id="ntContactPhone" placeholder="例：0912-345-678"></label>
         </div>
-        <div style="display:flex;gap:10px;margin-top:12px">
-          <label class="fld-l" style="flex:1;margin:0">預計出貨日<span style="font-weight:400;color:var(--sub)">（配送）</span>
-            <input type="date" id="ntDeliver"></label>
-          <label class="fld-l" style="flex:1;margin:0">預計取貨日<span style="font-weight:400;color:var(--sub)">（自取）</span>
-            <input type="date" id="ntPickup"></label>
-        </div>
+        <label class="fld-l" style="margin-top:12px">訂單取貨日<span style="font-weight:400;color:var(--sub)">（自取）</span>
+          <input type="date" id="ntPickup"></label>
       </div>
       <div class="date-box-ft">
         <button class="date-cancel" onclick="closeNewTeam()">取消</button>
-        <button class="date-apply" onclick="createTeam()">建立並開團</button>
+        <button class="date-apply" id="newTeamApply" onclick="createTeam()">建立並開團</button>
       </div>
     </div>
   </div>
@@ -6116,9 +6112,9 @@
     <div class="date-box" style="display:flex;flex-direction:column">
       <div class="date-box-h"><span>整批送單給店家</span><button onclick="closeSubmitModal()">&times;</button></div>
       <div style="padding-top:4px">
-        <label class="fld-l">送單 / 希望送達時間
-          <input type="datetime-local" id="submitDeliverAt"></label>
-        <div class="submit-hint">※ 送單日期不可早於現在時間。送出後將進入「待審核」，店家接單前可收回。</div>
+        <label class="fld-l">訂單取貨時間
+          <input type="datetime-local" id="submitPickupAt"></label>
+        <div class="submit-hint">※ 取貨時間不可早於現在時間。送出後將進入「待審核」，店家接單前可收回。</div>
       </div>
       <div class="date-box-ft">
         <button class="date-cancel" onclick="closeSubmitModal()">取消</button>
@@ -10197,8 +10193,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // 團資料：每團獨立的連結、狀態、收單截止
   let TEAMS = [
     {id:'B20418', name:'週五下午茶滷味團', start:'2026-05-23', deadline:'2026-05-23T18:00', open:true, orders:4, total:1400, paidN:1, paidAmt:435, hostNote:'本次滿 $1500 免運～費用請直接匯款或現金給我，謝謝大家！', pay:{lineId:'jianmei_tw', cash:true, bankCode:'013', bankAcct:'1234-5678-9012', bankName:'國泰世華', bank:'國泰世華 (013) 1234-5678-9012'}},
-    {id:'B33877', name:'尾牙加碼滷味團', start:'2026-05-26', deadline:'2026-05-26T17:00', open:true, orders:6, total:2180, paidN:3, paidAmt:1100, submitStatus:'pending', deliverAt:'2026-05-27T12:00', pay:{lineId:'jianmei_tw', cash:true, bank:''}},
-    {id:'B51722', name:'部門聚餐宵夜團', start:'2026-05-20', deadline:'2026-05-20T17:30', open:false, orders:9, total:3050, paidN:9, paidAmt:3050, submitStatus:'accepted', deliverAt:'2026-05-21T18:00', replySeen:false, pay:{lineId:'', cash:true, bank:''}},
+    {id:'B33877', name:'尾牙加碼滷味團', start:'2026-05-26', deadline:'2026-05-26T17:00', open:true, orders:6, total:2180, paidN:3, paidAmt:1100, submitStatus:'pending', pickupAt:'2026-05-27T12:00', pay:{lineId:'jianmei_tw', cash:true, bank:''}},
+    {id:'B51722', name:'部門聚餐宵夜團', start:'2026-05-20', deadline:'2026-05-20T17:30', open:false, orders:9, total:3050, paidN:9, paidAmt:3050, submitStatus:'accepted', pickupAt:'2026-05-21T18:00', replySeen:false, pay:{lineId:'', cash:true, bank:''}},
   ];
   (function(){ const d=new Date(); const p=n=>String(n).padStart(2,'0'); const fmt=(off,h,m)=>{const x=new Date(d);x.setDate(d.getDate()+off);return x.getFullYear()+'-'+p(x.getMonth()+1)+'-'+p(x.getDate())+'T'+p(h)+':'+p(m);};
     if(TEAMS[0])TEAMS[0].deadline=fmt(2,18,0);    // 後天截止（收單中）
@@ -10766,38 +10762,89 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     else { if(typeof openNewTeam==='function') openNewTeam(); }
   }
   window.updateOrgNav=updateOrgNav; window.orgTabListAction=orgTabListAction; window.orgPnavAction=orgPnavAction;
-  // 開新團
+  // 開新團 / 編輯團購資料
+  let editingTeamId=null;
+  function setNewTeamModalMode(mode){
+    const isEdit=mode==='edit';
+    const title=document.getElementById('newTeamTitle');
+    const apply=document.getElementById('newTeamApply');
+    if(title) title.textContent=isEdit?'編輯團購資料':'開新團';
+    if(apply) apply.textContent=isEdit?'儲存團購資料':'建立並開團';
+  }
+  function canEditTeamDetails(t){
+    return !!(t && !t.submitStatus);
+  }
+  function defaultTeamDeadline(now){
+    const d=new Date(now);
+    d.setHours(18,0,0,0);
+    if(d.getTime() < now.getTime()+60000) d.setTime(now.getTime()+2*3600*1000);
+    return toLocalDt(d);
+  }
+  function fillTeamForm(t){
+    const now=new Date();
+    const today=toLocalDt(now).slice(0,10);
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v||''; };
+    set('ntName',t&&t.name);
+    const ns=document.getElementById('ntStart');
+    if(ns){
+      ns.value=(t&&t.start)||today;
+      ns.min=t?'':today;
+    }
+    const nd=document.getElementById('ntDeadline');
+    if(nd){
+      nd.value=(t&&t.deadline)||defaultTeamDeadline(now);
+      nd.min=t?'':toLocalDt(now);
+    }
+    const dept=document.getElementById('ntDeptOptions');
+    if(dept) dept.value=(t&&Array.isArray(t.deptOptions)&&t.deptOptions.length?t.deptOptions:DEFAULT_DEPT_OPTIONS).join('、');
+    const profile=t?null:getOrgProfile();
+    set('ntAddress',t?t.address:(profile.defaultAddress||''));
+    set('ntContactName',t?t.contactName:(profile.defaultContactName||profile.name||''));
+    set('ntContactPhone',t?t.contactPhone:(profile.defaultContactPhone||''));
+    set('ntPickup',t?t.pickupAt:'');
+  }
   function openNewTeam(){
     const openCount=TEAMS.filter(t=>t.open).length;
     if(openCount>=maxTeams){ toast(`已達開團上限（${maxTeams} 團），請先關閉其他團`,true); return; }
-    document.getElementById('ntName').value='';
-    const now=new Date();
-    const today=toLocalDt(now).slice(0,10);
-    const ns=document.getElementById('ntStart'); ns.value=today; ns.min=today;            // 開團日期不可早於今天
-    const nd=document.getElementById('ntDeadline'); nd.value=today+'T18:00'; nd.min=toLocalDt(now); // 截止不可早於現在
-    const dept=document.getElementById('ntDeptOptions'); if(dept) dept.value=DEFAULT_DEPT_OPTIONS.join('、');
-    const profile=getOrgProfile();
-    const addr=document.getElementById('ntAddress'); if(addr) addr.value=profile.defaultAddress||'';
-    const contact=document.getElementById('ntContactName'); if(contact) contact.value=profile.defaultContactName||profile.name||'';
-    const phone=document.getElementById('ntContactPhone'); if(phone) phone.value=profile.defaultContactPhone||'';
+    editingTeamId=null;
+    setNewTeamModalMode('new');
+    fillTeamForm(null);
     document.getElementById('newTeamModal').classList.add('show');
   }
-  function closeNewTeam(){ document.getElementById('newTeamModal').classList.remove('show'); }
+  function openEditTeamDetails(){
+    const t=TEAMS.find(x=>x.id===currentTeamId);
+    if(!canEditTeamDetails(t)){ toast('送單後團購資料已鎖定，請先收回或重新編輯訂單',true); return; }
+    editingTeamId=t.id;
+    setNewTeamModalMode('edit');
+    fillTeamForm(t);
+    document.getElementById('newTeamModal').classList.add('show');
+  }
+  function closeNewTeam(){ editingTeamId=null; document.getElementById('newTeamModal').classList.remove('show'); }
   function createTeam(){
+    const editingId=editingTeamId;
+    const existing=editingId?TEAMS.find(x=>x.id===editingId):null;
     const name=document.getElementById('ntName').value.trim();
     if(!name){ toast('請輸入團購名稱',true); return; }
     const start=document.getElementById('ntStart').value;
     const deadline=document.getElementById('ntDeadline').value;
     const todayYmd=toLocalDt(new Date()).slice(0,10);
-    if(start && start<todayYmd){ toast('開團日期不可早於今天',true); return; }
-    if(deadline && new Date(deadline).getTime() < Date.now()-60000){ toast('收單截止不可早於現在時間',true); return; }
-    const deliverAt=document.getElementById('ntDeliver')?.value||'';
+    if(!existing && start && start<todayYmd){ toast('開團日期不可早於今天',true); return; }
+    if(!existing && deadline && new Date(deadline).getTime() < Date.now()-60000){ toast('收單截止不可早於現在時間',true); return; }
     const pickupAt=document.getElementById('ntPickup')?.value||'';
-    const deptOptions=uniqueDeptOptions(deptOptionListFromText(document.getElementById('ntDeptOptions')?.value).length?deptOptionListFromText(document.getElementById('ntDeptOptions')?.value):DEFAULT_DEPT_OPTIONS);
+    const deptText=deptOptionListFromText(document.getElementById('ntDeptOptions')?.value);
+    const deptOptions=uniqueDeptOptions(deptText.length?deptText:DEFAULT_DEPT_OPTIONS);
     const address=(document.getElementById('ntAddress')?.value||'').trim();
     const contactName=(document.getElementById('ntContactName')?.value||'').trim();
     const contactPhone=(document.getElementById('ntContactPhone')?.value||'').trim();
-    const t={id:Math.random().toString(36).slice(2,8), name, start, deadline, deliverAt, pickupAt, deptOptions, address, contactName, contactPhone, open:true, orders:0, total:0, submitStatus:null, pay:orgDefaultPay()};
+    if(existing){
+      Object.assign(existing,{name,start,deadline,pickupAt,deptOptions,address,contactName,contactPhone,deliverAt:''});
+      closeNewTeam();
+      enterTeam(existing.id);
+      if(typeof renderTeamList==='function') renderTeamList();
+      toast('已更新團購資料');
+      return;
+    }
+    const t={id:Math.random().toString(36).slice(2,8), name, start, deadline, pickupAt, deptOptions, address, contactName, contactPhone, open:true, orders:0, total:0, submitStatus:null, pay:orgDefaultPay()};
     TEAMS.unshift(t);
     closeNewTeam(); renderTeamList();
     toast('已開團「'+name+'」');
@@ -10854,7 +10901,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     closeLineShare();
   }
   window.enterTeam=enterTeam; window.backToTeamList=backToTeamList;
-  window.openNewTeam=openNewTeam; window.closeNewTeam=closeNewTeam; window.createTeam=createTeam;
+  window.openNewTeam=openNewTeam; window.openEditTeamDetails=openEditTeamDetails; window.closeNewTeam=closeNewTeam; window.createTeam=createTeam;
   window.toggleTeamById=toggleTeamById; window.toggleCurrentTeam=toggleCurrentTeam;
   window.copyTeamLinkById=copyTeamLinkById; window.copyTeamLink=copyTeamLink;
   window.openLineShareById=openLineShareById; window.openLineShare=openLineShare;
@@ -10867,6 +10914,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   window.setMaxTeams=setMaxTeams;
   // Date → datetime-local 字串（YYYY-MM-DDTHH:MM）
   function toLocalDt(d){ const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; }
+  function toPickupInputValue(v,fallback){
+    if(!v) return fallback;
+    const s=String(v);
+    return s.includes('T') ? s.slice(0,16) : s.slice(0,10)+'T12:00';
+  }
   // 送單：開送單時間 modal（送單日期不可早於現在）
   function submitToShop(){
     const s=orgStats();
@@ -10874,24 +10926,24 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const t=TEAMS.find(x=>x.id===currentTeamId);
     if(t && t.submitStatus==='accepted'){ toast('店家已接單，無法重新送單或取消',true); return; }
     if(t && t.submitStatus==='pending'){ toast('訂單已送出、待店家審核；如要修改請先收回',true); return; }
-    const inp=document.getElementById('submitDeliverAt');
+    const inp=document.getElementById('submitPickupAt');
     const now=new Date();
-    if(inp){ inp.min=toLocalDt(now); inp.value=(t&&t.deliverAt)?t.deliverAt:toLocalDt(new Date(now.getTime()+2*3600*1000)); }
+    if(inp){ inp.min=toLocalDt(now); inp.value=toPickupInputValue(t&&t.pickupAt, toLocalDt(new Date(now.getTime()+2*3600*1000))); }
     document.getElementById('submitModal').classList.add('show');
   }
   function closeSubmitModal(){ const m=document.getElementById('submitModal'); if(m) m.classList.remove('show'); }
   function confirmSubmitToShop(){
-    const inp=document.getElementById('submitDeliverAt'); const val=inp&&inp.value;
-    if(!val){ toast('請選擇送單時間',true); return; }
+    const inp=document.getElementById('submitPickupAt'); const val=inp&&inp.value;
+    if(!val){ toast('請選擇訂單取貨時間',true); return; }
     const when=new Date(val);
     if(isNaN(when.getTime())){ toast('時間格式不正確',true); return; }
-    if(when.getTime() < Date.now()-60000){ toast('送單日期不可早於現在時間',true); return; }  // 不可早於現在
+    if(when.getTime() < Date.now()-60000){ toast('取貨時間不可早於現在時間',true); return; }  // 不可早於現在
     const t=TEAMS.find(x=>x.id===currentTeamId); if(!t){ closeSubmitModal(); return; }
     const s=orgStats();
-    t.submitStatus='pending'; t.deliverAt=val; t.submittedPeople=s.people; t.submittedTotal=s.total;
+    t.submitStatus='pending'; t.pickupAt=val; t.deliverAt=''; t.submittedPeople=s.people; t.submittedTotal=s.total;
     t.open=false; t.paused=false;   // 送單後自動截止收單（狀態互斥，不再「收單中」又「待審核」）
     closeSubmitModal(); renderSubmitState(t); if(typeof renderTeamList==='function') renderTeamList();
-    if(typeof pushSysMsg==='function') pushSysMsg(t.id,'團主已送單給店家（'+s.people+' 人 · $'+s.total.toLocaleString()+'），收單已截止，等待店家審核');
+    if(typeof pushSysMsg==='function') pushSysMsg(t.id,'團主已送單給店家（'+s.people+' 人 · $'+s.total.toLocaleString()+'），取貨時間 '+val.replace('T',' ')+'，等待店家審核');
     toast(`已送單給店家！${s.people} 人 · $${s.total.toLocaleString()}（待審核）`);
     if(typeof notifySubmitted==='function') notifySubmitted(t.name, s.people, s.total);
   }
@@ -10917,7 +10969,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const t=TEAMS.find(x=>x.id===currentTeamId); if(!t||t.submitStatus!=='pending')return;
     t.submitStatus = decision==='accept' ? 'accepted' : 'rejected';
     const _m = decision==='accept'
-      ? ('店家已接單！'+(t.deliverAt?('預計 '+t.deliverAt.replace('T',' ')+' 送達，'):'')+'訂單已鎖定，無法再追加或取消')
+      ? ('店家已接單！'+(t.pickupAt?('預計 '+String(t.pickupAt).replace('T',' ')+' 取貨，'):'')+'訂單已鎖定，無法再追加或取消')
       : '店家暫時無法接單，請調整訂單內容後重新送出';
     if(typeof pushSysMsg==='function') pushSysMsg(t.id,_m);
     renderSubmitState(t); if(typeof renderTeamList==='function') renderTeamList();
@@ -10929,7 +10981,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     let btns='';
     if(st==='pending')        btns='<button onclick="event.stopPropagation();demoShopReview(\'accept\')">接單</button><button onclick="event.stopPropagation();demoShopReview(\'reject\')">取消訂單</button>';
     else if(st==='accepted')  btns='<button onclick="event.stopPropagation();demoShopAdvance(\'preparing\')">開始備貨</button>';
-    else if(st==='preparing') btns='<button onclick="event.stopPropagation();demoShopAdvance(\'shipped\')">安排出貨</button>';
+    else if(st==='preparing') btns='<button onclick="event.stopPropagation();demoShopAdvance(\'shipped\')">通知取貨</button>';
     else if(st==='shipped'||st==='rejected') btns='<button onclick="event.stopPropagation();demoShopAdvance(\'pending\')">重設測試</button>';
     return btns?`<div class="osb-demo"><span class="osb-demo-tag">店家端模擬</span>${btns}</div>`:'';
   }
@@ -10939,27 +10991,27 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const st=t?t.submitStatus:null;
     if(!st){ bar.hidden=true; bar.innerHTML=''; if(foot) foot.style.display=''; return; }
     if(foot) foot.style.display='none'; bar.hidden=false;
-    const when=t.deliverAt?t.deliverAt.replace('T',' '):'';
+    const when=t.pickupAt?String(t.pickupAt).replace('T',' '):'';
     // 已取消：紅色訊息 + 重新編輯
     if(st==='rejected'){
       bar.className='org-submit-bar rejected';
-      bar.innerHTML=`<div class="osb-msg"><span class="osb-pill rejected">店家已取消</span><span class="osb-text">店家暫時無法接單，可調整訂單內容後重新送出。<span style="color:var(--mute)">（原送單 ${when}）</span></span></div>
+      bar.innerHTML=`<div class="osb-msg"><span class="osb-pill rejected">店家已取消</span><span class="osb-text">店家暫時無法接單，可調整訂單內容後重新送出。<span style="color:var(--mute)">（原取貨 ${when}）</span></span></div>
         <div class="osb-actions"><button class="osb-btn reedit" onclick="reeditResubmit()">重新編輯並送出</button></div>
         ${osbDemoRow(st)}`;
       return;
     }
-    // 進行中：時間軸（送單→接單→備貨→出貨）+ 店家訊息 + 動作
+    // 進行中：時間軸（送單→接單→備貨→取貨）+ 店家訊息 + 動作
     const done={pending:1,accepted:2,preparing:3,shipped:4}[st]||1;
-    const labels=['已送單','店家接單','備貨中','已出貨'];
+    const labels=['已送單','店家接單','備貨中','可取貨'];
     const steps=labels.map((lb,i)=>{
       const idx=i+1; const cls=idx<=done?'done':((idx===done+1&&st!=='shipped')?'cur':'');
       return `<div class="osb-node ${cls}"><span class="osb-dot">${idx<=done?'✓':idx}</span><span class="osb-lb">${lb}</span></div>`;
     }).join('');
     const MSG={
       pending:  ['pending','待店家接單','已送單給店家，<b>等待接單中</b>…店家確認前可收回或加購，確認後即鎖定。'],
-      accepted: ['accepted','店家已接單','店家已確認接單'+(when?'，預計 <b>'+when+'</b> 送達':'')+'，訂單已鎖定。'],
-      preparing:['accepted','店家備貨中','店家正在備貨，<b>準備出貨中</b>'+(when?'，預計 '+when+' 送達':'')+'，請稍候。'],
-      shipped:  ['shipped','已安排出貨','店家<b>已安排出貨</b>'+(when?'，預計 '+when+' 送達':'')+'，請留意收貨。']
+      accepted: ['accepted','店家已接單','店家已確認接單'+(when?'，預計 <b>'+when+'</b> 取貨':'')+'，訂單已鎖定。'],
+      preparing:['accepted','店家備貨中','店家正在備貨中'+(when?'，預計 '+when+' 取貨':'')+'，請稍候。'],
+      shipped:  ['shipped','可取貨','店家<b>已通知可取貨</b>'+(when?'，預計 '+when+' 取貨':'')+'，請留意。']
     }[st];
     let actions='';
     if(st==='pending'){
@@ -10984,20 +11036,20 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const t=TEAMS.find(x=>x.id===currentTeamId); if(!t)return;
     t.submitStatus=to;
     const msg={
-      preparing:'店家開始備貨，準備出貨中',
-      shipped:'店家已安排出貨'+(t.deliverAt?('，預計 '+t.deliverAt.replace('T',' ')+' 送達'):''),
+      preparing:'店家開始備貨中',
+      shipped:'店家已通知可取貨'+(t.pickupAt?('，預計 '+String(t.pickupAt).replace('T',' ')+' 取貨'):''),
       pending:'（測試）已重設為待店家審核'
     }[to]||'';
     if(msg && typeof pushSysMsg==='function') pushSysMsg(t.id,msg);
     renderSubmitState(t); if(typeof renderTeamList==='function') renderTeamList();
-    toast({preparing:'店家備貨中',shipped:'店家已安排出貨',pending:'已重設為待審核'}[to]||'');
+    toast({preparing:'店家備貨中',shipped:'店家已通知可取貨',pending:'已重設為待審核'}[to]||'');
   }
   window.demoShopAdvance=demoShopAdvance;
   window.recallOrder=recallOrder; window.reeditResubmit=reeditResubmit; window.demoShopReview=demoShopReview;
   // ── 店家回覆：頂部訊息列 + 登入彈窗 ──
   function storeReplyText(t){
     if(!t) return '';
-    if(t.submitStatus==='accepted') return '店家已接單！'+(t.deliverAt?('預計 '+t.deliverAt.replace('T',' ')+' 送達。'):'')+'訂單已鎖定，無法再追加或取消。';
+    if(t.submitStatus==='accepted') return '店家已接單！'+(t.pickupAt?('預計 '+String(t.pickupAt).replace('T',' ')+' 取貨。'):'')+'訂單已鎖定，無法再追加或取消。';
     if(t.submitStatus==='rejected') return '店家暫時無法接單，請調整訂單內容後再重新送出。';
     return '';
   }
