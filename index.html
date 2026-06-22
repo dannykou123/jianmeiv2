@@ -2725,7 +2725,7 @@
   /* 舊版相容（保留樣式不影響）*/
   .team-ctrl{padding:0 20px;margin-bottom:4px}
   /* 單團詳情：連結卡 */
-  .team-open{background:var(--card);border:1px solid var(--edge);border-radius:16px;padding:0;margin:0 20px 14px;overflow:hidden}
+  .team-open{background:var(--card);border:1px solid var(--edge);border-radius:16px;padding:0;margin:0 20px 14px;overflow:visible;position:relative}
   .team-open-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;padding-bottom:11px;border-bottom:1px solid var(--edge)}
   .team-badge{display:inline-flex;align-items:center;gap:9px;font-size:16px;font-weight:800;color:var(--green);padding:0;border-radius:0;letter-spacing:.5px}
   .team-mini-acts{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
@@ -3474,19 +3474,47 @@
   .org3-acts button.has-unpaid{color:var(--gold)}
   .act-badge{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;margin-left:4px;font-size:10.5px;font-weight:800;line-height:1;color:#fff;background:var(--danger);border-radius:999px;vertical-align:middle}
   /* 收單台款D · 留白居中 */
-  .org3d-top{display:flex;justify-content:center;padding:18px 18px 0}
-  .org3d-hero{text-align:center;padding:16px 18px 0}
-  .org3d-k{font-size:12.5px;color:var(--mute);font-weight:600;letter-spacing:1.5px}
-  .org3d-amt{font-family:'Noto Serif TC',serif;font-weight:900;font-size:46px;color:var(--gold);line-height:1.1;margin-top:5px;font-variant-numeric:tabular-nums}
-  .org3d-bar{padding:18px 44px 0}
-  .org3d-bar .pay-bar{height:6px}
+  .org3d-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px 0}
+  .org3d-payrate{font-size:12.5px;font-weight:800;color:var(--green);white-space:nowrap}
+  .org3d-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;text-align:left;padding:14px 18px 0}
+  .org3d-main{min-width:0}
+  .org3d-k{font-size:12px;color:var(--mute);font-weight:800;letter-spacing:.12em}
+  .org3d-amt{font-family:'Noto Serif TC',serif;font-weight:900;font-size:44px;color:var(--gold);line-height:1.04;margin-top:4px;font-variant-numeric:tabular-nums}
+  .org3d-code{margin-top:7px}
+  .org3d-stats{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;max-width:360px}
+  .org3d-stats span{display:inline-flex;align-items:baseline;gap:5px;min-height:30px;border:1px solid var(--edge);background:var(--bg-1);border-radius:10px;padding:6px 10px;font-size:12.5px;color:var(--sub);white-space:nowrap}
+  .org3d-stats b{font-size:14px;color:var(--ink);font-weight:900}
+  .org3d-stats .recv{color:var(--green)}
+  .org3d-stats em{font-style:normal;color:var(--mute);font-weight:700}
+  .org3d-bar{padding:14px 18px 0}
+  .org3d-bar .pay-bar{height:7px}
   .org3d-bar[hidden]{display:none}
   .org3d-meta{text-align:center;font-size:13px;color:var(--sub);padding:14px 18px 2px}
   .org3d-meta .os-id{font-family:ui-monospace,monospace;color:var(--gold);font-weight:700}
   .org3d-meta .recv{color:var(--green);font-weight:700}
   .org3d-meta #payRingPct{color:var(--green);font-weight:700}
-  @media(max-width:560px){ .org3d-amt{font-size:38px} .org3d-bar{padding:16px 24px 0} }
+  .org-action-wrap{position:relative}
   .org3-acts button:not(:last-child)::after{content:"";position:absolute;right:0;top:50%;transform:translateY(-50%);width:1px;height:15px;background:var(--edge)}
+  .org3-acts .org-action-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:0;white-space:nowrap}
+  .org3-acts .org-action-btn .ico{width:15px;height:15px;flex-shrink:0}
+  .org3-acts .org-action-btn.open,.org3-acts .org-action-btn:focus-visible{color:var(--gold);outline:none;background:rgba(255,255,255,.045)}
+  .org-action-menu{position:absolute;top:calc(100% + 8px);z-index:30;width:min(168px,calc(100vw - 32px));padding:7px;border:1px solid var(--edge-hi);border-radius:12px;background:var(--card);box-shadow:0 16px 32px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.12)}
+  .org-action-menu[hidden]{display:none}
+  .org-action-menu.share{left:37.5%;transform:translateX(-50%)}
+  .org-action-menu.pay{left:62.5%;transform:translateX(-50%)}
+  .org-action-menu-item{display:flex;width:100%;align-items:center;justify-content:flex-start;border:none;background:transparent;color:var(--ink);font-family:'Noto Sans TC';font-size:13.5px;font-weight:800;border-radius:9px;padding:10px 11px;cursor:pointer}
+  .org-action-menu-item:hover,.org-action-menu-item:focus-visible{outline:none;background:var(--bg-1);color:var(--gold)}
+  @media(max-width:560px){
+    .org3d-hero{flex-direction:column;align-items:stretch;gap:12px}
+    .org3d-amt{font-size:38px}
+    .org3d-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));max-width:none;gap:7px}
+    .org3d-stats span{justify-content:center;padding:6px 5px;font-size:11.5px}
+    .org3d-stats b{font-size:13px}
+    .org3d-bar{padding:13px 18px 0}
+    .org3-acts button{font-size:12.5px;padding:12px 2px}
+    .org3-acts .org-action-btn{gap:4px}
+    .org3-acts .org-action-btn .ico{width:14px;height:14px}
+  }
   .team-open>.team-note.open{padding:2px 18px 6px}
   .team-open>.team-note.open .team-note-body{padding-bottom:0}
   .org-foot{position:fixed;left:0;right:0;bottom:0;z-index:70;padding:12px 20px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(0deg,var(--bg-0) 60%,transparent);pointer-events:none}
@@ -5904,6 +5932,7 @@
             <span class="team-badge" id="teamBadge"><span class="team-dot"></span>開團中</span>
             <svg class="ico tsb-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
           </button>
+          <div class="org3d-payrate"><span id="payRingPct">0%</span> 收款</div>
         </div>
         <div class="status-modal" id="teamStatusMenu" hidden onclick="if(event.target===this)closeStatusMenu()">
           <div class="status-sheet">
@@ -5916,23 +5945,38 @@
         </div>
         <input type="hidden" id="teamLink" value="">
         <div class="org3d-hero">
-          <div class="org3d-k">訂單總額</div>
-          <div class="org3d-amt">$<span id="osTotal">0</span></div>
+          <div class="org3d-main">
+            <div class="org3d-k">訂單總額</div>
+            <div class="org3d-amt">$<span id="osTotal">0</span></div>
+            <div class="org3d-code"><span class="os-id" id="teamId">#—</span></div>
+          </div>
+          <div class="org3d-stats">
+            <span><b id="osPeople">0</b><em>人</em></span>
+            <span><em>已收</em><b class="recv" id="ovRecv">$0</b></span>
+            <span><em>待收</em><b id="ovUnrecv">$0</b></span>
+          </div>
         </div>
         <div class="org3d-bar" id="orgPayRow" hidden>
           <div class="pay-bar"><i id="payBarFill"></i></div>
         </div>
-        <div class="org3d-meta">
-          <span class="os-id" id="teamId">#—</span> · <span id="osPeople">0</span> 人 · 已收 <b class="recv" id="ovRecv">$0</b> · <span id="payRingPct">0%</span> 收款
-          <span style="display:none"><b id="ovPaidN">0</b><b id="ovTotalN">0</b><b id="ovUnrecv">$0</b></span>
+        <div class="org3d-meta" hidden>
+          <b id="ovPaidN">0</b><b id="ovTotalN">0</b>
         </div>
-        <div class="org3-acts">
-          <button onclick="toggleTeamNote()">公告</button>
-          <button onclick="copyTeamLink()">連結</button>
-          <button onclick="openLineShare()">LINE</button>
-          <button id="teamPaySetBtn" onclick="openPaySetup()">收款</button>
-          <button id="remindUnpaidBtn" onclick="remindUnpaid()">催款<span class="act-badge" id="unpaidBadge" hidden></span></button>
-          <button onclick="printTeamA4()">列印</button>
+        <div class="org-action-wrap">
+          <div class="org3-acts">
+            <button type="button" class="org-action-btn" id="orgActionNotice" onclick="toggleTeamNote()"><svg class="ico" viewBox="0 0 24 24"><path d="M4 4h16v12H7l-3 3V4z"/></svg><span>公告</span></button>
+            <button type="button" class="org-action-btn" id="orgActionShare" onclick="toggleOrgActionMenu(event,'share')"><svg class="ico" viewBox="0 0 24 24"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7"/><path d="M12 16V3M7 8l5-5 5 5"/></svg><span>分享</span></button>
+            <button type="button" class="org-action-btn" id="orgActionPay" onclick="toggleOrgActionMenu(event,'pay')"><svg class="ico" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span>收款</span><span class="act-badge" id="unpaidBadge" hidden></span></button>
+            <button type="button" class="org-action-btn" id="orgActionPrint" onclick="printTeamA4()"><svg class="ico" viewBox="0 0 24 24"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><path d="M6 14h12v8H6z"/></svg><span>列印</span></button>
+          </div>
+          <div class="org-action-menu share" id="orgShareMenu" hidden>
+            <button type="button" class="org-action-menu-item" onclick="closeOrgActionMenus();copyTeamLink()">複製連結</button>
+            <button type="button" class="org-action-menu-item" onclick="closeOrgActionMenus();openLineShare()">LINE 分享</button>
+          </div>
+          <div class="org-action-menu pay" id="orgPayMenu" hidden>
+            <button type="button" class="org-action-menu-item" onclick="closeOrgActionMenus();openPaySetup()">收款設定</button>
+            <button type="button" class="org-action-menu-item" onclick="closeOrgActionMenus();remindUnpaid()">催未付款</button>
+          </div>
         </div>
         <div class="team-note" id="teamNoteWrap">
           <div class="team-note-body">
@@ -10004,7 +10048,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const _pr=document.getElementById('orgPayRow'); if(_pr) _pr.hidden=!ORDERS.length;
     const _unpaidN=ORDERS.length-paidCount;
     const _ub=document.getElementById('unpaidBadge'); if(_ub){ _ub.textContent=_unpaidN; _ub.hidden=_unpaidN<=0; }
-    const _rb=document.getElementById('remindUnpaidBtn'); if(_rb) _rb.classList.toggle('has-unpaid',_unpaidN>0);
+    const _rb=document.getElementById('orgActionPay'); if(_rb) _rb.classList.toggle('has-unpaid',_unpaidN>0);
     if(typeof updateNotePreview==='function') updateNotePreview();
   }
   function togglePaid(i){
@@ -10158,6 +10202,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   window.toggleTeamMore=toggleTeamMore;
   function toggleStatusMenu(e){
     if(e&&e.stopPropagation)e.stopPropagation();
+    if(typeof closeOrgActionMenus==='function') closeOrgActionMenus();
     const m=document.getElementById('teamStatusMenu'); if(!m)return;
     if(m.parentElement!==document.body) document.body.appendChild(m);
     const show=m.hidden;
@@ -10165,6 +10210,27 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const b=document.getElementById('teamStatusBtn'); if(b) b.classList.toggle('open',show);
   }
   function closeStatusMenu(){ const m=document.getElementById('teamStatusMenu'); if(m) m.hidden=true; const b=document.getElementById('teamStatusBtn'); if(b) b.classList.remove('open'); }
+  function closeOrgActionMenus(){
+    ['orgShareMenu','orgPayMenu'].forEach(id=>{ const m=document.getElementById(id); if(m) m.hidden=true; });
+    ['orgActionShare','orgActionPay'].forEach(id=>{ const b=document.getElementById(id); if(b) b.classList.remove('open'); });
+  }
+  function toggleOrgActionMenu(e,type){
+    if(e&&e.stopPropagation)e.stopPropagation();
+    const id=type==='pay'?'orgPayMenu':'orgShareMenu';
+    const btnId=type==='pay'?'orgActionPay':'orgActionShare';
+    const menu=document.getElementById(id); if(!menu) return;
+    const willOpen=menu.hidden;
+    closeStatusMenu();
+    closeOrgActionMenus();
+    if(willOpen){
+      menu.hidden=false;
+      const btn=document.getElementById(btnId); if(btn) btn.classList.add('open');
+    }
+  }
+  document.addEventListener('click',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('.org-action-wrap')) return;
+    closeOrgActionMenus();
+  });
   function togglePerson(h){ const c=h&&h.closest?h.closest('.person-card'):null; if(!c) return; const willOpen=!c.classList.contains('open'); c.classList.toggle('open');
     // 展開時把內容捲進可視範圍，避免被底部固定送單列蓋住
     if(willOpen) setTimeout(function(){ try{ const r=c.getBoundingClientRect(); const footH=140; if(r.bottom>window.innerHeight-footH){ c.scrollIntoView({behavior:'smooth',block:'center'}); } }catch(e){} },300); }
@@ -10180,6 +10246,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   window.editTeamName=editTeamName;
   window.toggleStatusMenu=toggleStatusMenu; window.closeStatusMenu=closeStatusMenu;
+  window.toggleOrgActionMenu=toggleOrgActionMenu; window.closeOrgActionMenus=closeOrgActionMenus;
 
   /* ════ 多團管理 ════ */
   let maxTeams = 2;   // 店家設定：每日可開團數上限
@@ -10497,6 +10564,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function enterTeam(id){
     const t=TEAMS.find(x=>x.id===id); if(!t)return;
     currentTeamId=id;
+    if(typeof closeOrgActionMenus==='function') closeOrgActionMenus();
     document.getElementById('orgListView').hidden=true;
     document.getElementById('orgDetailView').hidden=false;
     document.getElementById('orgBack').hidden=false;

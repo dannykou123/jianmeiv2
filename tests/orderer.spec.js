@@ -804,7 +804,8 @@ test.describe('orderer page automation', () => {
 
     await page.locator('#teamList .tcard').first().click();
     await expect(page.locator('#organizer.active #orgDetailView')).toBeVisible();
-    await page.locator('#teamPaySetBtn').click();
+    await page.locator('#orgActionPay').click();
+    await page.locator('#orgPayMenu .org-action-menu-item', { hasText: '收款設定' }).click();
     await expect(page.locator('#paySetModal.show')).toBeVisible();
     await expect(page.locator('#paySetLineId')).toHaveValue('org_default_tw');
     await expect(page.locator('#paySetBankCode')).toHaveValue('013');
@@ -836,12 +837,39 @@ test.describe('orderer page automation', () => {
       clone.querySelectorAll('.act-badge').forEach(node => node.remove());
       return clone.textContent.trim();
     }));
-    expect(actionLabels).toEqual(['公告', '連結', 'LINE', '收款', '催款', '列印']);
+    expect(actionLabels).toEqual(['公告', '分享', '收款', '列印']);
+    await expect(page.locator('.org3-acts > button', { hasText: '連結' })).toHaveCount(0);
+    await expect(page.locator('.org3-acts > button', { hasText: 'LINE' })).toHaveCount(0);
+    await expect(page.locator('.org3-acts > button', { hasText: '催款' })).toHaveCount(0);
     await expect(page.locator('.org3-acts button', { hasText: '備註' })).toHaveCount(0);
+    await expect(page.locator('#orgActionPay #unpaidBadge')).toBeVisible();
 
     await page.locator('.org3-acts button', { hasText: '公告' }).click();
     await expect(page.locator('#teamNoteWrap.open')).toBeVisible();
     await expect(page.locator('#teamNoteWrap .tn-edit-h')).toHaveText('給訂購人看的公告');
+
+    await page.locator('#orgActionShare').click();
+    await expect(page.locator('#orgShareMenu')).toBeVisible();
+    await expect(page.locator('#orgShareMenu .org-action-menu-item')).toHaveText(['複製連結', 'LINE 分享']);
+    const shareMenuBox = await page.locator('#orgShareMenu').evaluate(menu => {
+      const rect = menu.getBoundingClientRect();
+      return {
+        insideViewport: rect.left >= 0 && rect.right <= innerWidth && rect.top >= 0 && rect.bottom <= innerHeight,
+        aboveCard: (Number(getComputedStyle(menu).zIndex) || 0) >= 20,
+      };
+    });
+    expect(shareMenuBox).toEqual({ insideViewport: true, aboveCard: true });
+    await page.locator('#orgShareMenu .org-action-menu-item', { hasText: 'LINE 分享' }).click();
+    await expect(page.locator('#lineModal.show')).toBeVisible();
+    await page.evaluate(() => window.closeLineShare());
+
+    await page.locator('#orgActionPay').click();
+    await expect(page.locator('#orgPayMenu')).toBeVisible();
+    await expect(page.locator('#orgPayMenu .org-action-menu-item')).toHaveText(['收款設定', '催未付款']);
+    await page.locator('#orgPayMenu .org-action-menu-item', { hasText: '收款設定' }).click();
+    await expect(page.locator('#paySetModal.show')).toBeVisible();
+    await page.evaluate(() => window.closePaySetup());
+    await expect(page.locator('.org3-acts > button', { hasText: '列印' })).toBeEnabled();
 
     const submitSummary = await page.evaluate(() => {
       const foot = document.querySelector('#orgFoot');
@@ -1244,6 +1272,29 @@ test.describe('orderer page automation', () => {
 
       await openOrganizerDetail(page);
       await expectReachableControls(page, ['#organizer.active', '#orgPnav', '#orgFoot']);
+      const actionFit = await page.locator('.org3-acts').evaluate(actions => {
+        const buttons = Array.from(actions.querySelectorAll(':scope > button'));
+        const rect = actions.getBoundingClientRect();
+        return {
+          count: buttons.length,
+          labels: buttons.map(button => {
+            const clone = button.cloneNode(true);
+            clone.querySelectorAll('.act-badge').forEach(node => node.remove());
+            return clone.textContent.trim();
+          }),
+          allInside: buttons.every(button => {
+            const b = button.getBoundingClientRect();
+            return b.left >= rect.left - 1 && b.right <= rect.right + 1 && b.width >= 54;
+          }),
+          noWrap: buttons.every(button => button.scrollWidth <= button.clientWidth + 1),
+        };
+      });
+      expect(actionFit).toEqual({
+        count: 4,
+        labels: ['公告', '分享', '收款', '列印'],
+        allInside: true,
+        noWrap: true,
+      });
 
       const firstCard = page.locator('#orgPeople .person-card').first();
       await firstCard.locator('.person-h').click();
