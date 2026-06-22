@@ -948,6 +948,19 @@ test.describe('orderer page automation', () => {
     await expect(page.locator('#ntContactPhone')).toHaveValue('0900-000-000');
     await expect(page.locator('#ntDeadline')).toHaveValue('2099-06-20T18:00');
     await expect(page.locator('#ntPickup')).toHaveValue('2099-06-21');
+    const contactFieldLayout = await page.evaluate(() => {
+      const name = document.querySelector('#ntContactName')?.closest('label')?.getBoundingClientRect();
+      const phone = document.querySelector('#ntContactPhone')?.closest('label')?.getBoundingClientRect();
+      const box = document.querySelector('#newTeamModal.show .date-box')?.getBoundingClientRect();
+      return {
+        phoneStartsOnNextLine: !!name && !!phone && phone.top >= name.bottom + 8,
+        phoneFitsModal: !!phone && !!box && phone.left >= box.left + 16 && phone.right <= box.right - 16,
+      };
+    });
+    expect(contactFieldLayout).toEqual({
+      phoneStartsOnNextLine: true,
+      phoneFitsModal: true,
+    });
 
     await page.locator('#ntName').fill('編輯後下午茶團');
     await page.locator('#ntAddress').fill('新地址 88 號');

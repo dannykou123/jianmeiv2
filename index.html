@@ -1240,6 +1240,8 @@
   .fld-l{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--sub)}
   .fld-l input,.fld-l select,.fld-l textarea{background:var(--bg-1);border:1px solid var(--edge);color:var(--ink);border-radius:10px;padding:11px 13px;font-size:15px;font-family:'Noto Sans TC';transition:.2s;box-sizing:border-box}
   .fld-l textarea{resize:vertical;line-height:1.5}
+  .team-contact-row{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+  .team-contact-row .fld-l{margin:0;min-width:0}
   .fld-bare{display:block;width:100%;box-sizing:border-box;background:var(--bg-1);border:1px solid var(--edge);color:var(--ink);border-radius:11px;padding:13px 14px;font-size:15px;font-family:'Noto Sans TC';transition:.2s}
   .fld-bare:focus{outline:none;border-color:var(--rose)}
   .fld-l input:focus,.fld-l select:focus,.fld-l textarea:focus{outline:none;border-color:var(--rose)}
@@ -6063,10 +6065,10 @@
           <textarea id="ntDeptOptions" rows="2" placeholder="行政部、財務部、業務部、人資、總務、工程"></textarea></label>
         <label class="fld-l" style="margin-top:12px">聯絡地址<span style="font-weight:400;color:var(--sub)">（給店家送單用）</span>
           <input type="text" id="ntAddress" placeholder="例：台北市南港區..."></label>
-        <div style="display:flex;gap:10px;margin-top:12px">
-          <label class="fld-l" style="flex:1;margin:0">聯絡人
+        <div class="team-contact-row">
+          <label class="fld-l">聯絡人
             <input type="text" id="ntContactName" placeholder="例：王小明"></label>
-          <label class="fld-l" style="flex:1;margin:0">聯絡電話
+          <label class="fld-l">聯絡電話
             <input type="tel" id="ntContactPhone" placeholder="例：0912-345-678"></label>
         </div>
         <label class="fld-l" style="margin-top:12px">訂單取貨日<span style="font-weight:400;color:var(--sub)">（自取）</span>
