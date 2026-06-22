@@ -5927,16 +5927,16 @@
           <span style="display:none"><b id="ovPaidN">0</b><b id="ovTotalN">0</b><b id="ovUnrecv">$0</b></span>
         </div>
         <div class="org3-acts">
+          <button onclick="toggleTeamNote()">公告</button>
           <button onclick="copyTeamLink()">連結</button>
           <button onclick="openLineShare()">LINE</button>
           <button id="teamPaySetBtn" onclick="openPaySetup()">收款</button>
           <button id="remindUnpaidBtn" onclick="remindUnpaid()">催款<span class="act-badge" id="unpaidBadge" hidden></span></button>
-          <button onclick="toggleTeamNote()">備註</button>
           <button onclick="printTeamA4()">列印</button>
         </div>
         <div class="team-note" id="teamNoteWrap">
           <div class="team-note-body">
-            <div class="tn-edit-h">給訂購人看的備註</div>
+            <div class="tn-edit-h">給訂購人看的公告</div>
             <textarea id="teamHostNote" rows="3" placeholder="例：滿 $1500 免運、費用請匯款或現金給我…" oninput="saveHostNote()"></textarea>
           </div>
         </div>

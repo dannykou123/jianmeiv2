@@ -831,6 +831,17 @@ test.describe('orderer page automation', () => {
     await expect(page.locator('#orgHeroSubmit')).toHaveCount(0);
     await expect(page.locator('#orgFoot')).toBeVisible();
     await expect(page.locator('#orgPnavCta')).toBeHidden();
+    const actionLabels = await page.locator('.org3-acts button').evaluateAll(buttons => buttons.map(button => {
+      const clone = button.cloneNode(true);
+      clone.querySelectorAll('.act-badge').forEach(node => node.remove());
+      return clone.textContent.trim();
+    }));
+    expect(actionLabels).toEqual(['公告', '連結', 'LINE', '收款', '催款', '列印']);
+    await expect(page.locator('.org3-acts button', { hasText: '備註' })).toHaveCount(0);
+
+    await page.locator('.org3-acts button', { hasText: '公告' }).click();
+    await expect(page.locator('#teamNoteWrap.open')).toBeVisible();
+    await expect(page.locator('#teamNoteWrap .tn-edit-h')).toHaveText('給訂購人看的公告');
 
     const submitSummary = await page.evaluate(() => {
       const foot = document.querySelector('#orgFoot');
