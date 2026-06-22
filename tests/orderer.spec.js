@@ -926,6 +926,7 @@ test.describe('orderer page automation', () => {
         address: '原本地址',
         contactName: '原本聯絡人',
         contactPhone: '0900-000-000',
+        start: '2026-05-23',
         deadline: '2099-06-20T18:00',
         deptOptions: ['行政部', '財務部'],
         pickupAt: '2099-06-21',
@@ -941,13 +942,17 @@ test.describe('orderer page automation', () => {
     await page.locator('#teamEditDetailsBtn').click();
     await expect(page.locator('#newTeamModal.show')).toBeVisible();
     await expect(page.locator('#newTeamTitle')).toHaveText('編輯團購資料');
+    await expect(page.locator('#ntStart')).toHaveCount(0);
     await expect(page.locator('#ntDeliver')).toHaveCount(0);
+    await expect(page.locator('#newTeamModal')).not.toContainText('開團日期');
+    await expect(page.locator('#newTeamModal')).toContainText('取貨時間');
     await expect(page.locator('#ntName')).toHaveValue('編輯前團購');
     await expect(page.locator('#ntAddress')).toHaveValue('原本地址');
     await expect(page.locator('#ntContactName')).toHaveValue('原本聯絡人');
     await expect(page.locator('#ntContactPhone')).toHaveValue('0900-000-000');
     await expect(page.locator('#ntDeadline')).toHaveValue('2099-06-20T18:00');
-    await expect(page.locator('#ntPickup')).toHaveValue('2099-06-21');
+    await expect(page.locator('#ntPickup')).toHaveAttribute('type', 'datetime-local');
+    await expect(page.locator('#ntPickup')).toHaveValue('2099-06-21T12:00');
     const contactFieldLayout = await page.evaluate(() => {
       const name = document.querySelector('#ntContactName')?.closest('label')?.getBoundingClientRect();
       const phone = document.querySelector('#ntContactPhone')?.closest('label')?.getBoundingClientRect();
@@ -968,7 +973,7 @@ test.describe('orderer page automation', () => {
     await page.locator('#ntContactPhone').fill('0912-345-678');
     await page.locator('#ntDeadline').fill('2099-06-23T17:30');
     await page.locator('#ntDeptOptions').fill('行政部、研發部');
-    await page.locator('#ntPickup').fill('2099-06-24');
+    await page.locator('#ntPickup').fill('2099-06-24T15:45');
     await page.locator('#newTeamApply').click();
 
     await expect(page.locator('#newTeamModal.show')).toHaveCount(0);
@@ -979,6 +984,7 @@ test.describe('orderer page automation', () => {
         address: t.address,
         contactName: t.contactName,
         contactPhone: t.contactPhone,
+        start: t.start,
         deadline: t.deadline,
         deptOptions: t.deptOptions,
         pickupAt: t.pickupAt,
@@ -990,8 +996,9 @@ test.describe('orderer page automation', () => {
       address: '新地址 88 號',
       contactName: '新聯絡人',
       contactPhone: '0912-345-678',
+      start: '2026-05-23',
       deadline: '2099-06-23T17:30',
-      pickupAt: '2099-06-24',
+      pickupAt: '2099-06-24T15:45',
       deliverAt: '',
     });
     expect(editedTeam.deptOptions.slice(0, 2)).toEqual(['行政部', '研發部']);
@@ -1024,9 +1031,13 @@ test.describe('orderer page automation', () => {
     await page.evaluate(() => window.openNewTeam());
     await expect(page.locator('#newTeamModal.show')).toBeVisible();
     await expect(page.locator('#newTeamTitle')).toHaveText('開新團');
+    await expect(page.locator('#ntStart')).toHaveCount(0);
     await expect(page.locator('#ntDeliver')).toHaveCount(0);
-    await page.locator('#ntName').fill('只用取貨日測試團');
-    await page.locator('#ntPickup').fill('2099-06-25');
+    await expect(page.locator('#newTeamModal')).not.toContainText('開團日期');
+    await expect(page.locator('#newTeamModal')).toContainText('取貨時間');
+    await expect(page.locator('#ntPickup')).toHaveAttribute('type', 'datetime-local');
+    await page.locator('#ntName').fill('只用取貨時間測試團');
+    await page.locator('#ntPickup').fill('2099-06-25T12:30');
     await page.locator('#newTeamApply').click();
     await expect(page.locator('#newTeamModal.show')).toHaveCount(0);
 
@@ -1036,8 +1047,8 @@ test.describe('orderer page automation', () => {
       deliverAt: TEAMS[0].deliverAt || '',
     }));
     expect(createdTeam).toEqual({
-      name: '只用取貨日測試團',
-      pickupAt: '2099-06-25',
+      name: '只用取貨時間測試團',
+      pickupAt: '2099-06-25T12:30',
       deliverAt: '',
     });
 
@@ -1045,7 +1056,7 @@ test.describe('orderer page automation', () => {
     await page.evaluate(() => window.submitToShop());
     await expect(page.locator('#submitModal.show')).toBeVisible();
     await expect(page.locator('#submitPickupAt')).toBeVisible();
-    await expect(page.locator('#submitModal')).toContainText('訂單取貨時間');
+    await expect(page.locator('#submitModal')).toContainText('取貨時間');
     await page.locator('#submitPickupAt').fill('2099-06-25T12:30');
     await page.evaluate(() => window.confirmSubmitToShop());
     await expect(page.locator('#submitModal.show')).toHaveCount(0);

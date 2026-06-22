@@ -6057,8 +6057,6 @@
       <div style="padding-top:4px">
         <label class="fld-l">團購名稱
           <input type="text" id="ntName" placeholder="例：週五下午茶滷味團"></label>
-        <label class="fld-l" style="margin-top:12px">開團日期
-          <input type="date" id="ntStart"></label>
         <label class="fld-l" style="margin-top:12px">收單截止
           <input type="datetime-local" id="ntDeadline"></label>
         <label class="fld-l" style="margin-top:12px">訂購人單位
@@ -6071,8 +6069,8 @@
           <label class="fld-l">聯絡電話
             <input type="tel" id="ntContactPhone" placeholder="例：0912-345-678"></label>
         </div>
-        <label class="fld-l" style="margin-top:12px">訂單取貨日<span style="font-weight:400;color:var(--sub)">（自取）</span>
-          <input type="date" id="ntPickup"></label>
+        <label class="fld-l" style="margin-top:12px">取貨時間<span style="font-weight:400;color:var(--sub)">（自取）</span>
+          <input type="datetime-local" id="ntPickup"></label>
       </div>
       <div class="date-box-ft">
         <button class="date-cancel" onclick="closeNewTeam()">取消</button>
@@ -10784,14 +10782,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   function fillTeamForm(t){
     const now=new Date();
-    const today=toLocalDt(now).slice(0,10);
     const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v||''; };
     set('ntName',t&&t.name);
-    const ns=document.getElementById('ntStart');
-    if(ns){
-      ns.value=(t&&t.start)||today;
-      ns.min=t?'':today;
-    }
     const nd=document.getElementById('ntDeadline');
     if(nd){
       nd.value=(t&&t.deadline)||defaultTeamDeadline(now);
@@ -10803,7 +10795,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     set('ntAddress',t?t.address:(profile.defaultAddress||''));
     set('ntContactName',t?t.contactName:(profile.defaultContactName||profile.name||''));
     set('ntContactPhone',t?t.contactPhone:(profile.defaultContactPhone||''));
-    set('ntPickup',t?t.pickupAt:'');
+    set('ntPickup',toPickupInputValue(t&&t.pickupAt,''));
   }
   function openNewTeam(){
     const openCount=TEAMS.filter(t=>t.open).length;
@@ -10827,10 +10819,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const existing=editingId?TEAMS.find(x=>x.id===editingId):null;
     const name=document.getElementById('ntName').value.trim();
     if(!name){ toast('請輸入團購名稱',true); return; }
-    const start=document.getElementById('ntStart').value;
     const deadline=document.getElementById('ntDeadline').value;
     const todayYmd=toLocalDt(new Date()).slice(0,10);
-    if(!existing && start && start<todayYmd){ toast('開團日期不可早於今天',true); return; }
     if(!existing && deadline && new Date(deadline).getTime() < Date.now()-60000){ toast('收單截止不可早於現在時間',true); return; }
     const pickupAt=document.getElementById('ntPickup')?.value||'';
     const deptText=deptOptionListFromText(document.getElementById('ntDeptOptions')?.value);
@@ -10839,14 +10829,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const contactName=(document.getElementById('ntContactName')?.value||'').trim();
     const contactPhone=(document.getElementById('ntContactPhone')?.value||'').trim();
     if(existing){
-      Object.assign(existing,{name,start,deadline,pickupAt,deptOptions,address,contactName,contactPhone,deliverAt:''});
+      Object.assign(existing,{name,deadline,pickupAt,deptOptions,address,contactName,contactPhone,deliverAt:''});
       closeNewTeam();
       enterTeam(existing.id);
       if(typeof renderTeamList==='function') renderTeamList();
       toast('已更新團購資料');
       return;
     }
-    const t={id:Math.random().toString(36).slice(2,8), name, start, deadline, pickupAt, deptOptions, address, contactName, contactPhone, open:true, orders:0, total:0, submitStatus:null, pay:orgDefaultPay()};
+    const t={id:Math.random().toString(36).slice(2,8), name, start:todayYmd, deadline, pickupAt, deptOptions, address, contactName, contactPhone, open:true, orders:0, total:0, submitStatus:null, pay:orgDefaultPay()};
     TEAMS.unshift(t);
     closeNewTeam(); renderTeamList();
     toast('已開團「'+name+'」');
